@@ -13,6 +13,7 @@
     --text-light: #6b7280;
     --border: #e5e7eb;
     --accent: #2d6a4f;
+    --accent-light: #e8f5ee;
     --shadow: 0 2px 12px rgba(0,0,0,0.06);
     --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
     --radius: 16px;
@@ -28,7 +29,7 @@
   .app { max-width: 1200px; margin: 0 auto; }
 
   .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; animation: fadeDown 0.5s ease; }
-  .topbar h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .topbar h1 { font-size: 22px; font-weight: 700; letter-spacing: -1px; }
   .topbar .date { color: var(--text-light); font-size: 14px; margin-left: 12px; font-weight: 400; }
   .topbar-right { display: flex; gap: 10px; align-items: center; }
   .btn {
@@ -68,6 +69,8 @@
 
   .ring-wrap { position: relative; width: 100%; max-width: 460px; aspect-ratio: 1; }
   .ring-wrap svg { width: 100%; height: 100%; overflow: visible; }
+  .ring-wrap { transition: opacity 0.18s ease; }
+  .ring-wrap.switching { opacity: 0.25; }
 
   .ring-wrap circle.task-seg {
     transition: stroke-width 0.2s ease, filter 0.2s ease;
@@ -79,9 +82,6 @@
     filter: drop-shadow(0 3px 8px rgba(0,0,0,0.25));
   }
   .ring-wrap circle.bg-ring { transition: opacity 0.3s; }
-
-  .ring-wrap { transition: opacity 0.18s ease; }
-  .ring-wrap.switching { opacity: 0.25; }
 
   .ring-center {
     position: absolute; top: 50%; left: 50%;
@@ -130,6 +130,7 @@
   .task-item .body { flex: 1; min-width: 0; }
   .task-item .t { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .task-item .meta { font-size: 12px; color: var(--text-light); margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .task-item .meta .cross-day { color: var(--accent); font-weight: 500; }
   .task-item .note { font-size: 12px; color: var(--text-light); margin-top: 4px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .task-item .del {
     align-self: center; width: 24px; height: 24px; border-radius: 6px; border: none;
@@ -157,13 +158,55 @@
   .modal h3 { font-size: 17px; margin-bottom: 20px; }
   .form-row { margin-bottom: 14px; }
   .form-row label { display: block; font-size: 12px; color: var(--text-light); margin-bottom: 6px; }
-  .form-row input, .form-row textarea {
+  .form-row input[type="text"], .form-row textarea {
     width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
     font-size: 14px; font-family: inherit; background: #fff; transition: border-color 0.15s, box-shadow 0.15s;
   }
-  .form-row input:focus, .form-row textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,106,79,0.1); }
+  .form-row input[type="text"]:focus, .form-row textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,106,79,0.1); }
   .form-row textarea { resize: vertical; min-height: 60px; }
-  .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .tp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tp-field {
+    display: flex; align-items: center; gap: 0;
+    border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s; background: #fff;
+  }
+  .tp-field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,106,79,0.1); }
+  .tp-col { display: flex; flex-direction: column; align-items: center; flex: 1; }
+  .tp-col:first-child { border-right: 1px solid var(--border); }
+  .tp-btn {
+    width: 100%; height: 22px; border: none; background: transparent; cursor: pointer;
+    color: #94a3b8; font-size: 10px; display: flex; align-items: center; justify-content: center;
+    transition: background 0.1s, color 0.1s; padding: 0;
+  }
+  .tp-btn:hover { background: var(--accent-light); color: var(--accent); }
+  .tp-btn.up { border-bottom: 1px solid #f1f5f9; }
+  .tp-val {
+    width: 100%; text-align: center; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums;
+    padding: 4px 0; background: transparent; border: none; cursor: pointer; color: var(--text);
+  }
+  .tp-val:focus { outline: none; background: var(--accent-light); }
+  .tp-col .tp-btn.down { border-top: 1px solid #f1f5f9; }
+
+  .cp-grid { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .cp-dot {
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+    border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s;
+    position: relative;
+  }
+  .cp-dot:hover { transform: scale(1.12); }
+  .cp-dot.active { border-color: var(--text); }
+  .cp-dot.active::after {
+    content: ''; position: absolute; inset: -5px; border-radius: 50%;
+    border: 1.5px solid var(--text); opacity: 0.3;
+  }
+  .cp-custom {
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+    border: 2px dashed #cbd5e1; background: transparent; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: #94a3b8; transition: all 0.15s;
+  }
+  .cp-custom:hover { border-color: var(--accent); color: var(--accent); }
+  .cp-custom input[type="color"] { position: absolute; opacity: 0; width: 0; height: 0; }
 
   .cat-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .cat-opt {
@@ -176,19 +219,17 @@
   .cat-opt .dot { width: 10px; height: 10px; border-radius: 50%; }
   .cat-opt.active { border-color: var(--text); background: #fff; }
 
-  .cat-mgmt-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .cat-mgmt-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
   .cat-mgmt-item {
-    display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+    display: flex; align-items: center; gap: 10px; padding: 10px;
     border-radius: 10px; background: #f8fafc;
   }
-  .cat-mgmt-item input[type="color"] {
-    width: 36px; height: 36px; border: none; border-radius: 8px; cursor: pointer;
-    background: none; padding: 0;
-  }
+  .cat-mgmt-item .cp-dot { flex-shrink: 0; }
   .cat-mgmt-item input[type="text"] {
     flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px;
     font-size: 13px; font-family: inherit;
   }
+  .cat-mgmt-item input[type="text"]:focus { outline: none; border-color: var(--accent); }
   .cat-mgmt-item .del-cat {
     width: 26px; height: 26px; border-radius: 6px; border: none; background: transparent;
     color: #cbd5e1; cursor: pointer; font-size: 14px;
@@ -271,10 +312,32 @@
       <input type="text" id="fTitle" placeholder="例如：完成产品方案">
     </div>
     <div class="form-row">
-      <label>时间段</label>
-      <div class="time-row">
-        <input type="time" id="fStart" value="09:00">
-        <input type="time" id="fEnd" value="10:00">
+      <label>时间段（结束时间早于开始即跨天，如睡眠 23:00-08:00）</label>
+      <div class="tp-row">
+        <div class="tp-field" data-field="start">
+          <div class="tp-col">
+            <button class="tp-btn up" data-step="h+1">&#9650;</button>
+            <input class="tp-val" data-part="h" value="09" maxlength="2">
+            <button class="tp-btn down" data-step="h-1">&#9660;</button>
+          </div>
+          <div class="tp-col">
+            <button class="tp-btn up" data-step="m+5">&#9650;</button>
+            <input class="tp-val" data-part="m" value="00" maxlength="2">
+            <button class="tp-btn down" data-step="m-5">&#9660;</button>
+          </div>
+        </div>
+        <div class="tp-field" data-field="end">
+          <div class="tp-col">
+            <button class="tp-btn up" data-step="h+1">&#9650;</button>
+            <input class="tp-val" data-part="h" value="10" maxlength="2">
+            <button class="tp-btn down" data-step="h-1">&#9660;</button>
+          </div>
+          <div class="tp-col">
+            <button class="tp-btn up" data-step="m+5">&#9650;</button>
+            <input class="tp-val" data-part="m" value="00" maxlength="2">
+            <button class="tp-btn down" data-step="m-5">&#9660;</button>
+          </div>
+        </div>
       </div>
     </div>
     <div class="form-row">
@@ -313,6 +376,11 @@ const CENTER = 200;
 const VIEW_MIN = 720;
 const CIRC = 2 * Math.PI * RING_R;
 
+const PRESET_COLORS = [
+  '#b7e4c7','#2d6a4f','#90e0ef','#64dfdf','#ffe66d','#ffafcc',
+  '#a8dadc','#f4a261','#e76f51','#c8b6ff','#ffd6a5','#9bf6ff'
+];
+
 const DEFAULT_CATS = [
   { id: 'free',     name: '空闲', color: '#b7e4c7', system: true },
   { id: 'sleep',    name: '睡眠', color: '#2d6a4f' },
@@ -328,6 +396,7 @@ let editingId = null;
 let selectedCat = 'work';
 let viewMode = 'am';
 let animTimer = null;
+
 function loadCats() {
   try {
     const saved = JSON.parse(localStorage.getItem('timering_cats'));
@@ -355,6 +424,13 @@ function fmtDur(min) {
   if (h) return `${h}小时`;
   return `${m}分`;
 }
+function isCrossDay(t) { return t.end < t.start; }
+function taskDuration(t) {
+  return isCrossDay(t) ? (1440 - t.start) + t.end : (t.end - t.start);
+}
+function isNowTask(t, nowMin) {
+  return isCrossDay(t) ? (nowMin >= t.start || nowMin < t.end) : (nowMin >= t.start && nowMin < t.end);
+}
 function viewRange() { return viewMode === 'am' ? [0, 720] : [720, 1440]; }
 function polar(angleDeg, r) {
   const rad = (angleDeg - 90) * Math.PI / 180;
@@ -369,6 +445,20 @@ function load() {
   catch(e) { tasks = []; }
 }
 function save() { localStorage.setItem(storageKey(), JSON.stringify(tasks)); }
+
+function taskSegments(t, vs, ve) {
+  const segs = [];
+  if (isCrossDay(t)) {
+    const s1 = Math.max(t.start, vs), e1 = Math.min(1440, ve);
+    if (e1 > s1) segs.push([s1, e1]);
+    const s2 = Math.max(0, vs), e2 = Math.min(t.end, ve);
+    if (e2 > s2) segs.push([s2, e2]);
+  } else {
+    const s = Math.max(t.start, vs), e = Math.min(t.end, ve);
+    if (e > s) segs.push([s, e]);
+  }
+  return segs;
+}
 
 function renderRing() {
   const svg = document.getElementById('ringSvg');
@@ -390,18 +480,18 @@ function renderRing() {
   }
 
   tasks.forEach(t => {
-    const visStart = Math.max(t.start, vs);
-    const visEnd = Math.min(t.end, ve);
-    if (visEnd <= visStart) return;
-    const dur = visEnd - visStart;
-    const len = (dur / VIEW_MIN) * CIRC;
-    const offset = -((visStart - vs) / VIEW_MIN) * CIRC;
     const cat = catById(t.cat);
-    html += `<circle class="task-seg" cx="${CENTER}" cy="${CENTER}" r="${RING_R}" fill="none"
-      stroke="${cat.color}" stroke-width="${RING_W}"
-      stroke-dasharray="${len} ${CIRC - len}"
-      stroke-dashoffset="${offset}"
-      data-id="${t.id}" style="cursor:pointer"/>`;
+    const segs = taskSegments(t, vs, ve);
+    segs.forEach(([s, e]) => {
+      const dur = e - s;
+      const len = (dur / VIEW_MIN) * CIRC;
+      const offset = -((s - vs) / VIEW_MIN) * CIRC;
+      html += `<circle class="task-seg" cx="${CENTER}" cy="${CENTER}" r="${RING_R}" fill="none"
+        stroke="${cat.color}" stroke-width="${RING_W}"
+        stroke-dasharray="${len} ${CIRC - len}"
+        stroke-dashoffset="${offset}"
+        data-id="${t.id}" style="cursor:pointer"/>`;
+    });
   });
 
   const now = new Date();
@@ -410,7 +500,7 @@ function renderRing() {
   const nowDeg = (now12 / 720) * 360;
   const [hx, hy] = polar(nowDeg, RING_R - RING_W/2 - 4);
   html += `<line id="hourHand" x1="${CENTER}" y1="${CENTER}" x2="${hx}" y2="${hy}" stroke="#1f2937" stroke-width="2.5" stroke-linecap="round"/>`;
-  const nowTask = tasks.find(t => nowMin >= t.start && nowMin < t.end);
+  const nowTask = tasks.find(t => isNowTask(t, nowMin));
   html += `<circle cx="${CENTER}" cy="${CENTER}" r="5" fill="#1f2937"/>`;
 
   svg.innerHTML = html;
@@ -455,7 +545,7 @@ function updateClock() {
   const hh = now.getHours(), mm = now.getMinutes();
   document.getElementById('nowTime').textContent = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
   document.getElementById('nowAmpm').textContent = hh < 12 ? '上午' : '下午';
-  const nowTask = tasks.find(t => nowMin >= t.start && nowMin < t.end);
+  const nowTask = tasks.find(t => isNowTask(t, nowMin));
   const newText = nowTask ? `正在进行：${nowTask.title}` : '';
   const nt = document.getElementById('nowTask');
   if (nt.textContent !== newText) nt.textContent = newText;
@@ -472,14 +562,15 @@ function renderList() {
     return;
   }
   list.innerHTML = sorted.map((t, i) => {
-    const isNow = nowMin >= t.start && nowMin < t.end;
+    const isNow = isNowTask(t, nowMin);
     const cat = catById(t.cat);
+    const cd = isCrossDay(t);
     return `
     <div class="task-item ${isNow?'now':''}" data-id="${t.id}" style="animation-delay:${i*0.04}s">
       <div class="swatch" style="background:${cat.color}"></div>
       <div class="body">
         <div class="t">${escapeHtml(t.title)}</div>
-        <div class="meta">${minToTime(t.start)} - ${minToTime(t.end)} · ${cat.name}</div>
+        <div class="meta">${minToTime(t.start)} - ${minToTime(t.end)}${cd?'<span class="cross-day"> ·跨天</span>':''} · ${cat.name}</div>
         ${t.note ? `<div class="note">${escapeHtml(t.note)}</div>` : ''}
       </div>
       <button class="del" data-del="${t.id}" title="删除">×</button>
@@ -501,7 +592,7 @@ function renderList() {
 function renderStats() {
   const used = {};
   cats.forEach(c => used[c.id] = 0);
-  tasks.forEach(t => { used[t.cat] = (used[t.cat]||0) + (t.end - t.start); });
+  tasks.forEach(t => { used[t.cat] = (used[t.cat]||0) + taskDuration(t); });
   let busy = 0;
   cats.forEach(c => { if (c.id !== 'free') busy += used[c.id] || 0; });
   used.free = Math.max(0, 1440 - busy);
@@ -515,12 +606,56 @@ function renderStats() {
   `).join('');
 }
 
+function getTP(field) {
+  const f = document.querySelector(`.tp-field[data-field="${field}"]`);
+  const hv = f.querySelector('[data-part="h"]');
+  const mv = f.querySelector('[data-part="m"]');
+  return { h: parseInt(hv.value, 10) || 0, m: parseInt(mv.value, 10) || 0 };
+}
+function setTP(field, h, m) {
+  const f = document.querySelector(`.tp-field[data-field="${field}"]`);
+  f.querySelector('[data-part="h"]').value = String(h).padStart(2,'0');
+  f.querySelector('[data-part="m"]').value = String(m).padStart(2,'0');
+}
+function initTimePicker() {
+  document.querySelectorAll('.tp-field').forEach(field => {
+    field.querySelectorAll('.tp-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const [part, dir] = btn.dataset.step.split('-');
+        const valInput = field.querySelector(`[data-part="${part}"]`);
+        let v = parseInt(valInput.value, 10) || 0;
+        if (part === 'h') {
+          v = dir === '+' ? (v + 1) % 24 : (v - 1 + 24) % 24;
+        } else {
+          v = dir === '+' ? (v + 5) % 60 : (v - 5 + 60) % 60;
+        }
+        valInput.value = String(v).padStart(2, '0');
+      });
+    });
+    field.querySelectorAll('.tp-val').forEach(inp => {
+      inp.addEventListener('change', () => {
+        let v = parseInt(inp.value, 10) || 0;
+        if (inp.dataset.part === 'h') v = Math.max(0, Math.min(23, v));
+        else v = Math.max(0, Math.min(59, v));
+        inp.value = String(v).padStart(2, '0');
+      });
+    });
+  });
+}
+
 function openModal(task) {
   editingId = task ? task.id : null;
   document.getElementById('modalTitle').textContent = task ? '编辑事项' : '添加事项';
   document.getElementById('fTitle').value = task ? task.title : '';
-  document.getElementById('fStart').value = task ? minToTime(task.start) : '09:00';
-  document.getElementById('fEnd').value = task ? minToTime(task.end) : '10:00';
+  if (task) {
+    const sh = Math.floor(task.start/60), sm = task.start%60;
+    const eh = Math.floor(task.end/60), em = task.end%60;
+    setTP('start', sh, sm);
+    setTP('end', eh, em);
+  } else {
+    setTP('start', 9, 0);
+    setTP('end', 10, 0);
+  }
   document.getElementById('fNote').value = task ? (task.note||'') : '';
   selectedCat = task ? task.cat : 'work';
   renderCatPicker();
@@ -544,12 +679,13 @@ function renderCatPicker() {
 
 function saveTask() {
   const title = document.getElementById('fTitle').value.trim();
-  const start = timeToMin(document.getElementById('fStart').value);
-  const end = timeToMin(document.getElementById('fEnd').value);
+  const s = getTP('start');
+  const e = getTP('end');
+  const start = s.h * 60 + s.m;
+  const end = e.h * 60 + e.m;
   const note = document.getElementById('fNote').value.trim();
   if (!title) { toast('请填写事项标题'); return; }
-  if (end <= start) { toast('结束时间必须晚于开始时间'); return; }
-  if (end > 1440 || start < 0) { toast('时间需在 00:00 - 24:00 之间'); return; }
+  if (start === end) { toast('时间段不能为零'); return; }
   if (editingId) {
     const t = tasks.find(x => x.id === editingId);
     Object.assign(t, { title, start, end, cat: selectedCat, note });
@@ -573,7 +709,10 @@ function renderCatMgmt() {
   const list = document.getElementById('catMgmtList');
   list.innerHTML = cats.map(c => `
     <div class="cat-mgmt-item" data-id="${c.id}">
-      <input type="color" value="${c.color}" data-field="color" title="颜色">
+      <div class="cp-grid" data-id="${c.id}">
+        ${PRESET_COLORS.map(pc => `<span class="cp-dot ${pc===c.color?'active':''}" data-color="${pc}" style="background:${pc}"></span>`).join('')}
+        <span class="cp-custom" title="自定义颜色"><input type="color" value="${c.color}">+</span>
+      </div>
       <input type="text" value="${escapeHtml(c.name)}" data-field="name" maxlength="10">
       ${c.system ? '<span class="tag-system">系统</span>' : `<button class="del-cat" data-del="${c.id}" title="删除">×</button>`}
     </div>
@@ -581,15 +720,25 @@ function renderCatMgmt() {
 
   list.querySelectorAll('.cat-mgmt-item').forEach(row => {
     const id = row.dataset.id;
-    const colorInput = row.querySelector('input[data-field="color"]');
+    const grid = row.querySelector('.cp-grid');
     const nameInput = row.querySelector('input[data-field="name"]');
     const delBtn = row.querySelector('.del-cat');
 
-    colorInput.addEventListener('input', () => {
-      const cat = cats.find(c => c.id === id);
-      cat.color = colorInput.value;
-      saveCats(); renderAll();
+    grid.querySelectorAll('.cp-dot').forEach(dot => {
+      dot.addEventListener('click', () => {
+        const cat = cats.find(c => c.id === id);
+        cat.color = dot.dataset.color;
+        saveCats(); renderAll(); renderCatMgmt();
+      });
     });
+    const customColor = grid.querySelector('input[type="color"]');
+    customColor.addEventListener('input', () => {
+      const cat = cats.find(c => c.id === id);
+      cat.color = customColor.value;
+      saveCats(); renderAll();
+      grid.querySelectorAll('.cp-dot').forEach(d => d.classList.toggle('active', d.dataset.color === customColor.value));
+    });
+
     nameInput.addEventListener('change', () => {
       const cat = cats.find(c => c.id === id);
       const v = nameInput.value.trim();
@@ -606,7 +755,7 @@ function deleteCat(id) {
 }
 function addCat() {
   const id = 'c' + Date.now();
-  cats.push({ id, name: '新类别', color: '#cbd5e1' });
+  cats.push({ id, name: '新类别', color: '#c8b6ff' });
   saveCats(); renderAll(); renderCatMgmt();
   const rows = document.querySelectorAll('.cat-mgmt-item');
   const last = rows[rows.length - 1];
@@ -618,12 +767,12 @@ function exportData() {
     date: todayStr(),
     exportedAt: new Date().toISOString(),
     tasks: tasks.slice().sort((a,b)=>a.start-b.start).map(t => ({
-      time: `${minToTime(t.start)}-${minToTime(t.end)}`,
+      time: `${minToTime(t.start)}-${minToTime(t.end)}${isCrossDay(t)?' (跨天)':''}`,
       category: catById(t.cat).name,
       color: catById(t.cat).color,
       title: t.title,
       note: t.note,
-      duration_min: t.end - t.start
+      duration_min: taskDuration(t)
     }))
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
@@ -650,7 +799,7 @@ load();
 viewMode = new Date().getHours() < 12 ? 'am' : 'pm';
 if (!localStorage.getItem(storageKey())) {
   tasks = [
-    { id: 'demo1', start: 0,   end: 7*60,   cat: 'sleep',    title: '睡眠', note: '' },
+    { id: 'demo1', start: 23*60, end: 8*60,  cat: 'sleep',    title: '睡眠', note: '' },
     { id: 'demo2', start: 7*60, end: 8*60,   cat: 'exercise', title: '晨跑', note: '沿江边跑5公里' },
     { id: 'demo3', start: 9*60, end: 12*60,  cat: 'work',     title: '深度工作', note: '写方案' },
     { id: 'demo4', start: 14*60,end: 16*60,  cat: 'study',    title: '学英语', note: '背单词+听力' },
@@ -660,6 +809,7 @@ if (!localStorage.getItem(storageKey())) {
 }
 document.getElementById('todayLabel').textContent = todayStr();
 renderAll();
+initTimePicker();
 
 document.getElementById('addBtn').addEventListener('click', () => openModal(null));
 document.getElementById('cancelBtn').addEventListener('click', closeModal);
