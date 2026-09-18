@@ -219,6 +219,28 @@
   .cat-opt .dot { width: 10px; height: 10px; border-radius: 50%; }
   .cat-opt.active { border-color: var(--text); background: #fff; }
 
+  .repeat-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
+  .repeat-toggle .rt-opt {
+    flex: 1; padding: 8px; border-radius: 8px; border: 2px solid transparent;
+    background: #f8fafc; cursor: pointer; text-align: center; font-size: 13px;
+    transition: all 0.15s;
+  }
+  .repeat-toggle .rt-opt:hover { background: #f1f5f9; }
+  .repeat-toggle .rt-opt.active { border-color: var(--accent); background: var(--accent-light); color: var(--accent); font-weight: 600; }
+  .weekday-picker { display: flex; gap: 4px; }
+  .weekday-picker .wd {
+    flex: 1; padding: 7px 0; border-radius: 6px; border: 1px solid var(--border);
+    background: #fff; cursor: pointer; text-align: center; font-size: 12px;
+    transition: all 0.15s; user-select: none;
+  }
+  .weekday-picker .wd:hover { border-color: var(--accent); }
+  .weekday-picker .wd.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  .repeat-tag {
+    display: inline-block; font-size: 10px; color: var(--accent);
+    background: var(--accent-light); padding: 1px 6px; border-radius: 4px;
+    margin-left: 6px; font-weight: 500; vertical-align: middle;
+  }
+
   .cat-mgmt-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
   .cat-mgmt-item {
     display: flex; align-items: center; gap: 10px; padding: 10px;
@@ -345,6 +367,22 @@
       <div class="cat-picker" id="catPicker"></div>
     </div>
     <div class="form-row">
+      <label>重复</label>
+      <div class="repeat-toggle">
+        <div class="rt-opt active" data-repeat="once">一次性</div>
+        <div class="rt-opt" data-repeat="weekly">每周重复</div>
+      </div>
+      <div class="weekday-picker" id="weekdayPicker" style="display:none;">
+        <div class="wd" data-wd="1">一</div>
+        <div class="wd" data-wd="2">二</div>
+        <div class="wd" data-wd="3">三</div>
+        <div class="wd" data-wd="4">四</div>
+        <div class="wd" data-wd="5">五</div>
+        <div class="wd" data-wd="6">六</div>
+        <div class="wd" data-wd="0">日</div>
+      </div>
+    </div>
+    <div class="form-row">
       <label>备注（可选）</label>
       <textarea id="fNote" placeholder="补充说明..."></textarea>
     </div>
@@ -390,10 +428,17 @@ const DEFAULT_CATS = [
   { id: 'fun',      name: '娱乐', color: '#ffafcc' },
 ];
 
+const WEEKDAY_NAMES = ['周日','周一','周二','周三','周四','周五','周六'];
+const WEEKDAY_SHORT = ['日','一','二','三','四','五','六'];
+
 let cats = loadCats();
 let tasks = [];
+let recurring = loadRecurring();
 let editingId = null;
+let editingTemplateId = null;
 let selectedCat = 'work';
+let repeatMode = 'once';
+let selectedWeekdays = [];
 let viewMode = 'am';
 let animTimer = null;
 
@@ -437,14 +482,48 @@ function polar(angleDeg, r) {
   return [CENTER + r * Math.cos(rad), CENTER + r * Math.sin(rad)];
 }
 function escapeHtml(s) {
-  return String(s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function loadRecurring() {
+  try { return JSON.parse(localStorage.getItem('timering_recurring')) || []; }
+  catch(e) { return []; }
+}
+function saveRecurring() { localStorage.setItem('timering_recurring', JSON.stringify(recurring)); }
+function todayWeekday() { return new Date().getDay(); }
+function weekdaysLabel(wds) {
+  if (!wds || !wds.length) return '';
+  const sorted = wds.slice().sort((a,b)=>a-b);
+  if (sorted.length === 7) return '每天';
+  if (sorted.length === 5 && sorted.every(d => d>=1 && d<=5)) return '工作日';
+  if (sorted.length === 2 && sorted[0]===0 && sorted[1]===6) return '周末';
+  return sorted.map(d => WEEKDAY_SHORT[d]).join(' ');
 }
 
 function load() {
   try { tasks = JSON.parse(localStorage.getItem(storageKey())) || []; }
   catch(e) { tasks = []; }
+  const wd = todayWeekday();
+  recurring.forEach(r => {
+    if (r.weekdays && r.weekdays.includes(wd)) {
+      tasks.push({
+        id: 'r_' + r.id,
+        templateId: r.id,
+        recurring: true,
+        title: r.title,
+        start: r.start,
+        end: r.end,
+        cat: r.cat,
+        note: r.note,
+        weekdays: r.weekdays
+      });
+    }
+  });
 }
-function save() { localStorage.setItem(storageKey(), JSON.stringify(tasks)); }
+function save() {
+  const onceTasks = tasks.filter(t => !t.recurring);
+  localStorage.setItem(storageKey(), JSON.stringify(onceTasks));
+}
 
 function taskSegments(t, vs, ve) {
   const segs = [];
@@ -516,7 +595,8 @@ function renderRing() {
       if (!t) return;
       const rect = wrap.getBoundingClientRect();
       const cat = catById(t.cat);
-      tooltip.innerHTML = `<div class="tt-title">${escapeHtml(t.title)}</div><div class="tt-meta">${minToTime(t.start)} - ${minToTime(t.end)} · ${cat.name}</div>`;
+      const rtag = t.recurring ? ` · ${weekdaysLabel(t.weekdays)}` : '';
+      tooltip.innerHTML = `<div class="tt-title">${escapeHtml(t.title)}</div><div class="tt-meta">${minToTime(t.start)} - ${minToTime(t.end)} · ${cat.name}${rtag}</div>`;
       tooltip.style.left = (e.clientX - rect.left) + 'px';
       tooltip.style.top = (e.clientY - rect.top) + 'px';
       tooltip.classList.add('show');
@@ -565,11 +645,12 @@ function renderList() {
     const isNow = isNowTask(t, nowMin);
     const cat = catById(t.cat);
     const cd = isCrossDay(t);
+    const rtag = t.recurring ? `<span class="repeat-tag">${weekdaysLabel(t.weekdays)}</span>` : '';
     return `
     <div class="task-item ${isNow?'now':''}" data-id="${t.id}" style="animation-delay:${i*0.04}s">
       <div class="swatch" style="background:${cat.color}"></div>
       <div class="body">
-        <div class="t">${escapeHtml(t.title)}</div>
+        <div class="t">${escapeHtml(t.title)}${rtag}</div>
         <div class="meta">${minToTime(t.start)} - ${minToTime(t.end)}${cd?'<span class="cross-day"> ·跨天</span>':''} · ${cat.name}</div>
         ${t.note ? `<div class="note">${escapeHtml(t.note)}</div>` : ''}
       </div>
@@ -645,6 +726,7 @@ function initTimePicker() {
 
 function openModal(task) {
   editingId = task ? task.id : null;
+  editingTemplateId = task && task.recurring ? task.templateId : null;
   document.getElementById('modalTitle').textContent = task ? '编辑事项' : '添加事项';
   document.getElementById('fTitle').value = task ? task.title : '';
   if (task) {
@@ -658,12 +740,51 @@ function openModal(task) {
   }
   document.getElementById('fNote').value = task ? (task.note||'') : '';
   selectedCat = task ? task.cat : 'work';
+  if (task && task.recurring) {
+    repeatMode = 'weekly';
+    selectedWeekdays = task.weekdays ? task.weekdays.slice() : [];
+  } else {
+    repeatMode = 'once';
+    selectedWeekdays = [];
+  }
+  renderRepeatPicker();
   renderCatPicker();
   document.getElementById('modal').classList.add('show');
+}
+function renderRepeatPicker() {
+  document.querySelectorAll('.repeat-toggle .rt-opt').forEach(el => {
+    el.classList.toggle('active', el.dataset.repeat === repeatMode);
+  });
+  const wp = document.getElementById('weekdayPicker');
+  wp.style.display = repeatMode === 'weekly' ? 'flex' : 'none';
+  wp.querySelectorAll('.wd').forEach(el => {
+    el.classList.toggle('active', selectedWeekdays.includes(parseInt(el.dataset.wd, 10)));
+  });
+}
+function initRepeatPicker() {
+  document.querySelectorAll('.repeat-toggle .rt-opt').forEach(el => {
+    el.addEventListener('click', () => {
+      repeatMode = el.dataset.repeat;
+      if (repeatMode === 'weekly' && selectedWeekdays.length === 0) {
+        selectedWeekdays = [1,2,3,4,5];
+      }
+      renderRepeatPicker();
+    });
+  });
+  document.querySelectorAll('#weekdayPicker .wd').forEach(el => {
+    el.addEventListener('click', () => {
+      const d = parseInt(el.dataset.wd, 10);
+      const idx = selectedWeekdays.indexOf(d);
+      if (idx >= 0) selectedWeekdays.splice(idx, 1);
+      else selectedWeekdays.push(d);
+      renderRepeatPicker();
+    });
+  });
 }
 function closeModal() {
   document.getElementById('modal').classList.remove('show');
   editingId = null;
+  editingTemplateId = null;
 }
 function renderCatPicker() {
   const p = document.getElementById('catPicker');
@@ -686,18 +807,47 @@ function saveTask() {
   const note = document.getElementById('fNote').value.trim();
   if (!title) { toast('请填写事项标题'); return; }
   if (start === end) { toast('时间段不能为零'); return; }
-  if (editingId) {
-    const t = tasks.find(x => x.id === editingId);
-    Object.assign(t, { title, start, end, cat: selectedCat, note });
+  if (repeatMode === 'weekly' && selectedWeekdays.length === 0) { toast('请至少选择一个重复日'); return; }
+
+  if (repeatMode === 'weekly') {
+    if (editingTemplateId) {
+      const r = recurring.find(x => x.id === editingTemplateId);
+      if (r) Object.assign(r, { title, start, end, cat: selectedCat, note, weekdays: selectedWeekdays.slice().sort((a,b)=>a-b) });
+    } else {
+      recurring.push({
+        id: 'r' + Date.now(),
+        title, start, end, cat: selectedCat, note,
+        weekdays: selectedWeekdays.slice().sort((a,b)=>a-b)
+      });
+    }
+    saveRecurring();
   } else {
-    tasks.push({ id: 't' + Date.now(), title, start, end, cat: selectedCat, note });
+    if (editingId) {
+      const t = tasks.find(x => x.id === editingId);
+      if (t) Object.assign(t, { title, start, end, cat: selectedCat, note });
+    } else {
+      tasks.push({ id: 't' + Date.now(), title, start, end, cat: selectedCat, note });
+    }
   }
-  save(); closeModal(); renderAll();
-  toast(editingId ? '已更新' : '已添加');
+  if (editingTemplateId && repeatMode === 'once') {
+    recurring = recurring.filter(r => r.id !== editingTemplateId);
+    saveRecurring();
+  }
+  if (editingId && !tasks.find(x => x.id === editingId)?.recurring && repeatMode === 'weekly') {
+    tasks = tasks.filter(t => t.id !== editingId);
+  }
+
+  save(); closeModal(); load(); renderAll();
+  toast(editingId || editingTemplateId ? '已更新' : '已添加');
 }
 
 function deleteTask(id) {
-  tasks = tasks.filter(t => t.id !== id);
+  const t = tasks.find(x => x.id === id);
+  if (t && t.recurring) {
+    recurring = recurring.filter(r => r.id !== t.templateId);
+    saveRecurring();
+  }
+  tasks = tasks.filter(x => x.id !== id);
   save(); renderAll(); toast('已删除');
 }
 
@@ -705,13 +855,19 @@ function openCatModal() {
   renderCatMgmt();
   document.getElementById('catModal').classList.add('show');
 }
+function renderColorSwatches(currentColor, onPick) {
+  let html = PRESET_COLORS.map(c =>
+    `<span class="cp-dot ${c===currentColor?'active':''}" data-color="${c}" style="background:${c}"></span>`
+  ).join('');
+  html += `<span class="cp-custom" title="自定义颜色"><input type="color" value="${currentColor}">+</span>`;
+  return html;
+}
 function renderCatMgmt() {
   const list = document.getElementById('catMgmtList');
   list.innerHTML = cats.map(c => `
     <div class="cat-mgmt-item" data-id="${c.id}">
       <div class="cp-grid" data-id="${c.id}">
-        ${PRESET_COLORS.map(pc => `<span class="cp-dot ${pc===c.color?'active':''}" data-color="${pc}" style="background:${pc}"></span>`).join('')}
-        <span class="cp-custom" title="自定义颜色"><input type="color" value="${c.color}">+</span>
+        ${renderColorSwatches(c.color)}
       </div>
       <input type="text" value="${escapeHtml(c.name)}" data-field="name" maxlength="10">
       ${c.system ? '<span class="tag-system">系统</span>' : `<button class="del-cat" data-del="${c.id}" title="删除">×</button>`}
@@ -748,7 +904,9 @@ function renderCatMgmt() {
   });
 }
 function deleteCat(id) {
-  const used = tasks.filter(t => t.cat === id).length;
+  const usedOnce = tasks.filter(t => !t.recurring && t.cat === id).length;
+  const usedRecur = recurring.filter(r => r.cat === id).length;
+  const used = usedOnce + usedRecur;
   if (used > 0) { toast(`该类别下还有 ${used} 个事项，无法删除`); return; }
   cats = cats.filter(c => c.id !== id);
   saveCats(); renderAll(); renderCatMgmt(); toast('已删除类别');
@@ -772,7 +930,16 @@ function exportData() {
       color: catById(t.cat).color,
       title: t.title,
       note: t.note,
-      duration_min: taskDuration(t)
+      duration_min: taskDuration(t),
+      recurring: t.recurring ? true : false,
+      repeat: t.recurring ? weekdaysLabel(t.weekdays) : '一次性'
+    })),
+    recurring_templates: recurring.map(r => ({
+      title: r.title,
+      time: `${minToTime(r.start)}-${minToTime(r.end)}`,
+      category: catById(r.cat).name,
+      weekdays: r.weekdays.map(d => WEEKDAY_NAMES[d]).join(', '),
+      note: r.note
     }))
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
@@ -797,19 +964,24 @@ function renderAll() { renderRing(); renderList(); renderStats(); }
 
 load();
 viewMode = new Date().getHours() < 12 ? 'am' : 'pm';
-if (!localStorage.getItem(storageKey())) {
+if (!localStorage.getItem(storageKey()) && !localStorage.getItem('timering_recurring')) {
+  recurring = [
+    { id: 'rdemo1', title: '睡眠', start: 23*60, end: 8*60, cat: 'sleep', note: '', weekdays: [0,1,2,3,4,5,6] },
+    { id: 'rdemo2', title: '晨跑', start: 7*60, end: 8*60, cat: 'exercise', note: '沿江边跑5公里', weekdays: [1,2,3,4,5] },
+  ];
+  saveRecurring();
   tasks = [
-    { id: 'demo1', start: 23*60, end: 8*60,  cat: 'sleep',    title: '睡眠', note: '' },
-    { id: 'demo2', start: 7*60, end: 8*60,   cat: 'exercise', title: '晨跑', note: '沿江边跑5公里' },
     { id: 'demo3', start: 9*60, end: 12*60,  cat: 'work',     title: '深度工作', note: '写方案' },
     { id: 'demo4', start: 14*60,end: 16*60,  cat: 'study',    title: '学英语', note: '背单词+听力' },
     { id: 'demo5', start: 19*60,end: 20*60,  cat: 'fun',      title: '看剧', note: '' },
   ];
   save();
+  load();
 }
 document.getElementById('todayLabel').textContent = todayStr();
 renderAll();
 initTimePicker();
+initRepeatPicker();
 
 document.getElementById('addBtn').addEventListener('click', () => openModal(null));
 document.getElementById('cancelBtn').addEventListener('click', closeModal);
