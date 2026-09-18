@@ -129,7 +129,6 @@
   .task-item .body { flex: 1; min-width: 0; }
   .task-item .t { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .task-item .meta { font-size: 12px; color: var(--text-light); margin-top: 3px; font-variant-numeric: tabular-nums; }
-  .task-item .meta .cross-day { color: var(--accent); font-weight: 500; }
   .task-item .note { font-size: 12px; color: var(--text-light); margin-top: 4px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .task-item .del {
     align-self: center; width: 24px; height: 24px; border-radius: 6px; border: none;
@@ -574,14 +573,13 @@ function renderList() {
   }
   list.innerHTML = sorted.map((t, i) => {
     const isNow = isNowTask(t, nowMin);
-    const cd = isCrossDay(t);
     const rtag = t.recurring ? `<span class="repeat-tag">${weekdaysLabel(t.weekdays)}</span>` : '';
     return `
     <div class="task-item ${isNow?'now':''}" data-id="${t.id}" style="animation-delay:${i*0.04}s">
       <div class="swatch" style="background:${t.color}"></div>
       <div class="body">
         <div class="t">${escapeHtml(t.title)}${rtag}</div>
-        <div class="meta">${minToTime(t.start)} - ${minToTime(t.end)}${cd?'<span class="cross-day"> ·跨天</span>':''}</div>
+        <div class="meta">${minToTime(t.start)} - ${minToTime(t.end)}</div>
         ${t.note ? `<div class="note">${escapeHtml(t.note)}</div>` : ''}
       </div>
       <button class="del" data-del="${t.id}" title="删除">×</button>
@@ -670,6 +668,8 @@ function renderColorPicker() {
     });
   });
   const customColor = p.querySelector('input[type="color"]');
+  const customBtn = p.querySelector('.cp-custom');
+  customBtn.addEventListener('click', (e) => { e.stopPropagation(); customColor.click(); });
   customColor.addEventListener('input', () => {
     selectedColor = customColor.value;
     p.querySelectorAll('.cp-dot').forEach(d => d.classList.toggle('active', d.dataset.color === selectedColor));
