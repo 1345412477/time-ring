@@ -4,7 +4,7 @@
 
 ## 在线体验
 
-部署完成后访问：`https://1345412477.github.io/time-ring/`
+[点此访问 → https://1345412477.github.io/time-ring/](https://1345412477.github.io/time-ring/)
 
 ## 功能
 
