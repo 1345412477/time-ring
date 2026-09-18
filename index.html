@@ -17,6 +17,7 @@
     --shadow: 0 2px 12px rgba(0,0,0,0.06);
     --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
     --radius: 16px;
+    --free-color: #b7e4c7;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -41,8 +42,6 @@
   .btn:active { transform: translateY(0); }
   .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
   .btn-primary:hover { background: #1f5240; color: #fff; }
-  .btn-ghost { border: none; background: transparent; color: var(--text-light); padding: 8px 12px; }
-  .btn-ghost:hover { color: var(--text); background: #f1f5f9; }
 
   .main { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
 
@@ -103,10 +102,10 @@
   .ring-tooltip .tt-title { font-weight: 600; }
   .ring-tooltip .tt-meta { opacity: 0.8; font-size: 11px; }
 
-  .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 24px; width: 100%; }
-  .stat { text-align: center; padding: 10px 6px; border-radius: 10px; background: #f8fafc; transition: transform 0.2s; }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; width: 100%; justify-content: center; }
+  .stat { text-align: center; padding: 10px 14px; border-radius: 10px; background: #f8fafc; transition: transform 0.2s; min-width: 80px; }
   .stat:hover { transform: translateY(-2px); }
-  .stat .dot { width: 10px; height: 10px; border-radius: 50%; margin: 0 auto 6px; }
+  .stat .dot { width: 14px; height: 14px; border-radius: 50%; margin: 0 auto 6px; border: 1px solid rgba(0,0,0,0.08); }
   .stat .name { font-size: 12px; color: var(--text-light); }
   .stat .val { font-size: 14px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
 
@@ -203,21 +202,10 @@
   .cp-custom {
     width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
     border: 2px dashed #cbd5e1; background: transparent; display: flex; align-items: center; justify-content: center;
-    font-size: 14px; color: #94a3b8; transition: all 0.15s;
+    font-size: 14px; color: #94a3b8; transition: all 0.15s; position: relative;
   }
   .cp-custom:hover { border-color: var(--accent); color: var(--accent); }
   .cp-custom input[type="color"] { position: absolute; opacity: 0; width: 0; height: 0; }
-
-  .cat-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .cat-opt {
-    padding: 8px 6px; border-radius: 8px; border: 2px solid transparent; background: #f8fafc;
-    cursor: pointer; text-align: center; font-size: 12px;
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-    transition: all 0.15s;
-  }
-  .cat-opt:hover { background: #f1f5f9; }
-  .cat-opt .dot { width: 10px; height: 10px; border-radius: 50%; }
-  .cat-opt.active { border-color: var(--text); background: #fff; }
 
   .repeat-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
   .repeat-toggle .rt-opt {
@@ -241,24 +229,6 @@
     margin-left: 6px; font-weight: 500; vertical-align: middle;
   }
 
-  .cat-mgmt-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-  .cat-mgmt-item {
-    display: flex; align-items: center; gap: 10px; padding: 10px;
-    border-radius: 10px; background: #f8fafc;
-  }
-  .cat-mgmt-item .cp-dot { flex-shrink: 0; }
-  .cat-mgmt-item input[type="text"] {
-    flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px;
-    font-size: 13px; font-family: inherit;
-  }
-  .cat-mgmt-item input[type="text"]:focus { outline: none; border-color: var(--accent); }
-  .cat-mgmt-item .del-cat {
-    width: 26px; height: 26px; border-radius: 6px; border: none; background: transparent;
-    color: #cbd5e1; cursor: pointer; font-size: 14px;
-  }
-  .cat-mgmt-item .del-cat:hover { background: #fee2e2; color: #ef4444; }
-  .cat-mgmt-item .tag-system { font-size: 10px; color: var(--text-light); background: #e2e8f0; padding: 2px 6px; border-radius: 4px; }
-
   .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
 
   .toast {
@@ -276,7 +246,6 @@
     body { padding: 14px; }
     .main { grid-template-columns: 1fr; }
     .side { max-height: none; }
-    .stats { grid-template-columns: repeat(3, 1fr); }
     .ring-wrap { max-width: 360px; }
   }
 </style>
@@ -286,9 +255,6 @@
   <div class="topbar">
     <h1>时间圆环 <span class="date" id="todayLabel"></span></h1>
     <div class="topbar-right">
-      <button class="btn btn-ghost" id="catManageBtn" title="管理类别">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>类别
-      </button>
       <button class="btn" id="exportBtn">导出数据</button>
       <button class="btn btn-primary" id="addBtn">+ 添加事项</button>
     </div>
@@ -363,8 +329,8 @@
       </div>
     </div>
     <div class="form-row">
-      <label>类别</label>
-      <div class="cat-picker" id="catPicker"></div>
+      <label>颜色</label>
+      <div class="cp-grid" id="colorPicker"></div>
     </div>
     <div class="form-row">
       <label>重复</label>
@@ -393,18 +359,6 @@
   </div>
 </div>
 
-<div class="modal-mask" id="catModal">
-  <div class="modal">
-    <h3>管理类别</h3>
-    <p style="font-size:12px;color:var(--text-light);margin-bottom:14px;">自定义类别名称和颜色；"空闲"为系统类，不可删除。</p>
-    <div class="cat-mgmt-list" id="catMgmtList"></div>
-    <div class="modal-actions" style="margin-top:0;">
-      <button class="btn" id="addCatBtn">+ 新增类别</button>
-      <button class="btn btn-primary" id="catCloseBtn">完成</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
@@ -413,52 +367,31 @@ const RING_W = 28;
 const CENTER = 200;
 const VIEW_MIN = 720;
 const CIRC = 2 * Math.PI * RING_R;
+const FREE_COLOR = '#b7e4c7';
 
 const PRESET_COLORS = [
-  '#b7e4c7','#2d6a4f','#90e0ef','#64dfdf','#ffe66d','#ffafcc',
-  '#a8dadc','#f4a261','#e76f51','#c8b6ff','#ffd6a5','#9bf6ff'
-];
-
-const DEFAULT_CATS = [
-  { id: 'free',     name: '空闲', color: '#b7e4c7', system: true },
-  { id: 'sleep',    name: '睡眠', color: '#2d6a4f' },
-  { id: 'work',     name: '工作', color: '#90e0ef' },
-  { id: 'study',    name: '学习', color: '#64dfdf' },
-  { id: 'exercise', name: '运动', color: '#ffe66d' },
-  { id: 'fun',      name: '娱乐', color: '#ffafcc' },
+  '#2d6a4f','#90e0ef','#64dfdf','#ffe66d','#ffafcc',
+  '#a8dadc','#f4a261','#e76f51','#c8b6ff','#ffd6a5','#9bf6ff','#b7e4c7'
 ];
 
 const WEEKDAY_NAMES = ['周日','周一','周二','周三','周四','周五','周六'];
 const WEEKDAY_SHORT = ['日','一','二','三','四','五','六'];
 
-let cats = loadCats();
 let tasks = [];
 let recurring = loadRecurring();
 let editingId = null;
 let editingTemplateId = null;
-let selectedCat = 'work';
+let selectedColor = '#90e0ef';
 let repeatMode = 'once';
 let selectedWeekdays = [];
 let viewMode = 'am';
 let animTimer = null;
-
-function loadCats() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('timering_cats'));
-    if (saved && Array.isArray(saved) && saved.length) return saved;
-  } catch(e) {}
-  return JSON.parse(JSON.stringify(DEFAULT_CATS));
-}
-function saveCats() { localStorage.setItem('timering_cats', JSON.stringify(cats)); }
-function catById(id) { return cats.find(c => c.id === id) || cats[0]; }
-function freeColor() { return catById('free').color; }
 
 function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 function storageKey() { return `timering_${todayStr()}`; }
-function timeToMin(t) { const [h,m] = t.split(':').map(Number); return h*60+m; }
 function minToTime(m) {
   m = ((m % 1440) + 1440) % 1440;
   return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
@@ -513,7 +446,7 @@ function load() {
         title: r.title,
         start: r.start,
         end: r.end,
-        cat: r.cat,
+        color: r.color,
         note: r.note,
         weekdays: r.weekdays
       });
@@ -545,7 +478,7 @@ function renderRing() {
   const [vs, ve] = viewRange();
   let html = '';
 
-  html += `<circle class="bg-ring" cx="${CENTER}" cy="${CENTER}" r="${RING_R}" fill="none" stroke="${freeColor()}" stroke-width="${RING_W}" opacity="0.55"/>`;
+  html += `<circle class="bg-ring" cx="${CENTER}" cy="${CENTER}" r="${RING_R}" fill="none" stroke="${FREE_COLOR}" stroke-width="${RING_W}" opacity="0.55"/>`;
 
   for (let h = 0; h < 12; h++) {
     const deg = h * 30;
@@ -559,14 +492,13 @@ function renderRing() {
   }
 
   tasks.forEach(t => {
-    const cat = catById(t.cat);
     const segs = taskSegments(t, vs, ve);
     segs.forEach(([s, e]) => {
       const dur = e - s;
       const len = (dur / VIEW_MIN) * CIRC;
       const offset = -((s - vs) / VIEW_MIN) * CIRC;
       html += `<circle class="task-seg" cx="${CENTER}" cy="${CENTER}" r="${RING_R}" fill="none"
-        stroke="${cat.color}" stroke-width="${RING_W}"
+        stroke="${t.color}" stroke-width="${RING_W}"
         stroke-dasharray="${len} ${CIRC - len}"
         stroke-dashoffset="${offset}"
         data-id="${t.id}" style="cursor:pointer"/>`;
@@ -594,9 +526,8 @@ function renderRing() {
       const t = tasks.find(x => x.id === el.dataset.id);
       if (!t) return;
       const rect = wrap.getBoundingClientRect();
-      const cat = catById(t.cat);
       const rtag = t.recurring ? ` · ${weekdaysLabel(t.weekdays)}` : '';
-      tooltip.innerHTML = `<div class="tt-title">${escapeHtml(t.title)}</div><div class="tt-meta">${minToTime(t.start)} - ${minToTime(t.end)} · ${cat.name}${rtag}</div>`;
+      tooltip.innerHTML = `<div class="tt-title">${escapeHtml(t.title)}</div><div class="tt-meta">${minToTime(t.start)} - ${minToTime(t.end)}${rtag}</div>`;
       tooltip.style.left = (e.clientX - rect.left) + 'px';
       tooltip.style.top = (e.clientY - rect.top) + 'px';
       tooltip.classList.add('show');
@@ -643,15 +574,14 @@ function renderList() {
   }
   list.innerHTML = sorted.map((t, i) => {
     const isNow = isNowTask(t, nowMin);
-    const cat = catById(t.cat);
     const cd = isCrossDay(t);
     const rtag = t.recurring ? `<span class="repeat-tag">${weekdaysLabel(t.weekdays)}</span>` : '';
     return `
     <div class="task-item ${isNow?'now':''}" data-id="${t.id}" style="animation-delay:${i*0.04}s">
-      <div class="swatch" style="background:${cat.color}"></div>
+      <div class="swatch" style="background:${t.color}"></div>
       <div class="body">
         <div class="t">${escapeHtml(t.title)}${rtag}</div>
-        <div class="meta">${minToTime(t.start)} - ${minToTime(t.end)}${cd?'<span class="cross-day"> ·跨天</span>':''} · ${cat.name}</div>
+        <div class="meta">${minToTime(t.start)} - ${minToTime(t.end)}${cd?'<span class="cross-day"> ·跨天</span>':''}</div>
         ${t.note ? `<div class="note">${escapeHtml(t.note)}</div>` : ''}
       </div>
       <button class="del" data-del="${t.id}" title="删除">×</button>
@@ -671,20 +601,20 @@ function renderList() {
 }
 
 function renderStats() {
-  const used = {};
-  cats.forEach(c => used[c.id] = 0);
-  tasks.forEach(t => { used[t.cat] = (used[t.cat]||0) + taskDuration(t); });
+  const colorMap = {};
+  tasks.forEach(t => {
+    if (!colorMap[t.color]) colorMap[t.color] = 0;
+    colorMap[t.color] += taskDuration(t);
+  });
   let busy = 0;
-  cats.forEach(c => { if (c.id !== 'free') busy += used[c.id] || 0; });
-  used.free = Math.max(0, 1440 - busy);
+  Object.values(colorMap).forEach(v => busy += v);
+  const freeMin = Math.max(0, 1440 - busy);
 
-  document.getElementById('statsBar').innerHTML = cats.map(c => `
-    <div class="stat">
-      <div class="dot" style="background:${c.color}"></div>
-      <div class="name">${c.name}</div>
-      <div class="val">${fmtDur(used[c.id]||0)}</div>
-    </div>
-  `).join('');
+  let html = `<div class="stat"><div class="dot" style="background:${FREE_COLOR}"></div><div class="name">空闲</div><div class="val">${fmtDur(freeMin)}</div></div>`;
+  Object.keys(colorMap).forEach(color => {
+    html += `<div class="stat"><div class="dot" style="background:${color}"></div><div class="name">&nbsp;</div><div class="val">${fmtDur(colorMap[color])}</div></div>`;
+  });
+  document.getElementById('statsBar').innerHTML = html;
 }
 
 function getTP(field) {
@@ -725,6 +655,27 @@ function initTimePicker() {
   });
 }
 
+function renderColorPicker() {
+  const p = document.getElementById('colorPicker');
+  let html = PRESET_COLORS.map(c =>
+    `<span class="cp-dot ${c===selectedColor?'active':''}" data-color="${c}" style="background:${c}"></span>`
+  ).join('');
+  html += `<span class="cp-custom" title="自定义颜色"><input type="color" value="${selectedColor}">+</span>`;
+  p.innerHTML = html;
+
+  p.querySelectorAll('.cp-dot').forEach(dot => {
+    dot.addEventListener('click', () => {
+      selectedColor = dot.dataset.color;
+      renderColorPicker();
+    });
+  });
+  const customColor = p.querySelector('input[type="color"]');
+  customColor.addEventListener('input', () => {
+    selectedColor = customColor.value;
+    p.querySelectorAll('.cp-dot').forEach(d => d.classList.toggle('active', d.dataset.color === selectedColor));
+  });
+}
+
 function openModal(task) {
   editingId = task ? task.id : null;
   editingTemplateId = task && task.recurring ? task.templateId : null;
@@ -740,7 +691,7 @@ function openModal(task) {
     setTP('end', 10, 0);
   }
   document.getElementById('fNote').value = task ? (task.note||'') : '';
-  selectedCat = task ? task.cat : 'work';
+  selectedColor = task ? task.color : '#90e0ef';
   if (task && task.recurring) {
     repeatMode = 'weekly';
     selectedWeekdays = task.weekdays ? task.weekdays.slice() : [];
@@ -749,7 +700,7 @@ function openModal(task) {
     selectedWeekdays = [];
   }
   renderRepeatPicker();
-  renderCatPicker();
+  renderColorPicker();
   document.getElementById('modal').classList.add('show');
 }
 function renderRepeatPicker() {
@@ -787,17 +738,6 @@ function closeModal() {
   editingId = null;
   editingTemplateId = null;
 }
-function renderCatPicker() {
-  const p = document.getElementById('catPicker');
-  p.innerHTML = cats.filter(c => c.id !== 'free').map(c => `
-    <div class="cat-opt ${selectedCat===c.id?'active':''}" data-cat="${c.id}">
-      <span class="dot" style="background:${c.color}"></span>${c.name}
-    </div>
-  `).join('');
-  p.querySelectorAll('.cat-opt').forEach(el => {
-    el.addEventListener('click', () => { selectedCat = el.dataset.cat; renderCatPicker(); });
-  });
-}
 
 function saveTask() {
   const title = document.getElementById('fTitle').value.trim();
@@ -813,11 +753,11 @@ function saveTask() {
   if (repeatMode === 'weekly') {
     if (editingTemplateId) {
       const r = recurring.find(x => x.id === editingTemplateId);
-      if (r) Object.assign(r, { title, start, end, cat: selectedCat, note, weekdays: selectedWeekdays.slice().sort((a,b)=>a-b) });
+      if (r) Object.assign(r, { title, start, end, color: selectedColor, note, weekdays: selectedWeekdays.slice().sort((a,b)=>a-b) });
     } else {
       recurring.push({
         id: 'r' + Date.now(),
-        title, start, end, cat: selectedCat, note,
+        title, start, end, color: selectedColor, note,
         weekdays: selectedWeekdays.slice().sort((a,b)=>a-b)
       });
     }
@@ -825,9 +765,9 @@ function saveTask() {
   } else {
     if (editingId) {
       const t = tasks.find(x => x.id === editingId);
-      if (t) Object.assign(t, { title, start, end, cat: selectedCat, note });
+      if (t) Object.assign(t, { title, start, end, color: selectedColor, note });
     } else {
-      tasks.push({ id: 't' + Date.now(), title, start, end, cat: selectedCat, note });
+      tasks.push({ id: 't' + Date.now(), title, start, end, color: selectedColor, note });
     }
   }
   if (editingTemplateId && repeatMode === 'once') {
@@ -852,88 +792,13 @@ function deleteTask(id) {
   save(); renderAll(); toast('已删除');
 }
 
-function openCatModal() {
-  renderCatMgmt();
-  document.getElementById('catModal').classList.add('show');
-}
-function renderColorSwatches(currentColor) {
-  let html = PRESET_COLORS.map(c =>
-    `<span class="cp-dot ${c===currentColor?'active':''}" data-color="${c}" style="background:${c}"></span>`
-  ).join('');
-  html += `<span class="cp-custom" title="自定义颜色"><input type="color" value="${currentColor}">+</span>`;
-  return html;
-}
-function renderCatMgmt() {
-  const list = document.getElementById('catMgmtList');
-  list.innerHTML = cats.map(c => `
-    <div class="cat-mgmt-item" data-id="${c.id}">
-      <div class="cp-grid" data-id="${c.id}">
-        ${renderColorSwatches(c.color)}
-      </div>
-      <input type="text" value="${escapeHtml(c.name)}" data-field="name" maxlength="10">
-      ${c.system ? '<span class="tag-system">系统</span>' : `<button class="del-cat" data-del="${c.id}" title="删除">×</button>`}
-    </div>
-  `).join('');
-
-  list.querySelectorAll('.cat-mgmt-item').forEach(row => {
-    const id = row.dataset.id;
-    const grid = row.querySelector('.cp-grid');
-    const nameInput = row.querySelector('input[data-field="name"]');
-    const delBtn = row.querySelector('.del-cat');
-
-    grid.querySelectorAll('.cp-dot').forEach(dot => {
-      dot.addEventListener('click', () => {
-        const cat = cats.find(c => c.id === id);
-        cat.color = dot.dataset.color;
-        saveCats(); renderAll(); renderCatMgmt();
-      });
-    });
-    const customColor = grid.querySelector('input[type="color"]');
-    customColor.addEventListener('input', () => {
-      const cat = cats.find(c => c.id === id);
-      cat.color = customColor.value;
-      saveCats(); renderAll();
-      grid.querySelectorAll('.cp-dot').forEach(d => d.classList.toggle('active', d.dataset.color === customColor.value));
-    });
-
-    nameInput.addEventListener('change', () => {
-      const cat = cats.find(c => c.id === id);
-      const v = nameInput.value.trim();
-      if (v) { cat.name = v; saveCats(); renderAll(); renderCatMgmt(); }
-    });
-    if (delBtn) delBtn.addEventListener('click', () => deleteCat(id));
-  });
-}
-function deleteCat(id) {
-  const usedOnce = tasks.filter(t => !t.recurring && t.cat === id);
-  const usedRecur = recurring.filter(r => r.cat === id);
-  const used = usedOnce.length + usedRecur.length;
-  usedOnce.forEach(t => { t.cat = 'free'; });
-  usedRecur.forEach(r => { r.cat = 'free'; });
-  if (usedOnce.length) save();
-  if (usedRecur.length) saveRecurring();
-  cats = cats.filter(c => c.id !== id);
-  if (selectedCat === id) selectedCat = 'free';
-  saveCats(); load(); renderAll(); renderCatMgmt();
-  toast(used > 0 ? `已删除，${used} 个事项转为空闲` : '已删除类别');
-}
-function addCat() {
-  const id = 'c' + Date.now();
-  cats.push({ id, name: '新类别', color: '#c8b6ff' });
-  saveCats(); renderAll(); renderCatMgmt();
-  const rows = document.querySelectorAll('.cat-mgmt-item');
-  const last = rows[rows.length - 1];
-  if (last) last.querySelector('input[data-field="name"]').focus();
-}
-
 function exportData() {
   const data = {
     date: todayStr(),
     exportedAt: new Date().toISOString(),
     tasks: tasks.slice().sort((a,b)=>a.start-b.start).map(t => ({
       time: `${minToTime(t.start)}-${minToTime(t.end)}${isCrossDay(t)?' (跨天)':''}`,
-      category: catById(t.cat).name,
-      color: catById(t.cat).color,
+      color: t.color,
       title: t.title,
       note: t.note,
       duration_min: taskDuration(t),
@@ -943,7 +808,7 @@ function exportData() {
     recurring_templates: recurring.map(r => ({
       title: r.title,
       time: `${minToTime(r.start)}-${minToTime(r.end)}`,
-      category: catById(r.cat).name,
+      color: r.color,
       weekdays: r.weekdays.map(d => WEEKDAY_NAMES[d]).join(', '),
       note: r.note
     }))
@@ -972,14 +837,14 @@ load();
 viewMode = new Date().getHours() < 12 ? 'am' : 'pm';
 if (!localStorage.getItem(storageKey()) && !localStorage.getItem('timering_recurring')) {
   recurring = [
-    { id: 'rdemo1', title: '睡眠', start: 23*60, end: 8*60, cat: 'sleep', note: '', weekdays: [0,1,2,3,4,5,6] },
-    { id: 'rdemo2', title: '晨跑', start: 7*60, end: 8*60, cat: 'exercise', note: '沿江边跑5公里', weekdays: [1,2,3,4,5] },
+    { id: 'rdemo1', title: '睡眠', start: 23*60, end: 8*60, color: '#2d6a4f', note: '', weekdays: [0,1,2,3,4,5,6] },
+    { id: 'rdemo2', title: '晨跑', start: 7*60, end: 8*60, color: '#ffe66d', note: '沿江边跑5公里', weekdays: [1,2,3,4,5] },
   ];
   saveRecurring();
   tasks = [
-    { id: 'demo3', start: 9*60, end: 12*60,  cat: 'work',     title: '深度工作', note: '写方案' },
-    { id: 'demo4', start: 14*60,end: 16*60,  cat: 'study',    title: '学英语', note: '背单词+听力' },
-    { id: 'demo5', start: 19*60,end: 20*60,  cat: 'fun',      title: '看剧', note: '' },
+    { id: 'demo3', start: 9*60, end: 12*60,  color: '#90e0ef', title: '深度工作', note: '写方案' },
+    { id: 'demo4', start: 14*60,end: 16*60,  color: '#64dfdf', title: '学英语', note: '背单词+听力' },
+    { id: 'demo5', start: 19*60,end: 20*60,  color: '#ffafcc', title: '看剧', note: '' },
   ];
   save();
   load();
@@ -993,11 +858,7 @@ document.getElementById('addBtn').addEventListener('click', () => openModal(null
 document.getElementById('cancelBtn').addEventListener('click', closeModal);
 document.getElementById('saveBtn').addEventListener('click', saveTask);
 document.getElementById('exportBtn').addEventListener('click', exportData);
-document.getElementById('catManageBtn').addEventListener('click', openCatModal);
-document.getElementById('catCloseBtn').addEventListener('click', () => document.getElementById('catModal').classList.remove('show'));
-document.getElementById('addCatBtn').addEventListener('click', addCat);
 document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
-document.getElementById('catModal').addEventListener('click', (e) => { if (e.target.id === 'catModal') e.currentTarget.classList.remove('show'); });
 document.querySelectorAll('#ampmSwitch button').forEach(b => {
   b.addEventListener('click', () => {
     if (b.dataset.mode === viewMode) return;
