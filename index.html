@@ -333,6 +333,7 @@ let tasks = [];
 let editingId = null;
 let selectedCat = 'work';
 let viewMode = 'am';
+let animTimer = null;
 
 function loadCats() {
   try {
@@ -367,7 +368,7 @@ function polar(angleDeg, r) {
   return [CENTER + r * Math.cos(rad), CENTER + r * Math.sin(rad)];
 }
 function escapeHtml(s) {
-  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 function load() {
@@ -415,7 +416,7 @@ function renderRing(animate = false) {
   const now12 = (now.getHours() % 12) * 60 + now.getMinutes() + now.getSeconds()/60;
   const nowDeg = (now12 / 720) * 360;
   const [hx, hy] = polar(nowDeg, RING_R - RING_W/2 - 4);
-  html += `<line x1="${CENTER}" y1="${CENTER}" x2="${hx}" y2="${hy}" stroke="#1f2937" stroke-width="2.5" stroke-linecap="round"/>`;
+  html += `<line id="hourHand" x1="${CENTER}" y1="${CENTER}" x2="${hx}" y2="${hy}" stroke="#1f2937" stroke-width="2.5" stroke-linecap="round"/>`;
   const nowTask = tasks.find(t => nowMin >= t.start && nowMin < t.end);
   html += `<circle cx="${CENTER}" cy="${CENTER}" r="5" fill="#1f2937"/>`;
 
@@ -425,6 +426,8 @@ function renderRing(animate = false) {
     wrap.classList.remove('animating');
     void wrap.offsetWidth;
     wrap.classList.add('animating');
+    clearTimeout(animTimer);
+    animTimer = setTimeout(() => wrap.classList.remove('animating'), 500);
   }
 
   const tooltip = document.getElementById('ringTooltip');
@@ -454,6 +457,23 @@ function renderRing(animate = false) {
   const ind = document.getElementById('ampmIndicator');
   document.querySelectorAll('#ampmSwitch button').forEach(b => b.classList.toggle('active', b.dataset.mode === viewMode));
   ind.style.left = viewMode === 'pm' ? 'calc(50% - 3px)' : '3px';
+}
+
+function updateClock() {
+  const now = new Date();
+  const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
+  const now12 = (now.getHours() % 12) * 60 + now.getMinutes() + now.getSeconds()/60;
+  const nowDeg = (now12 / 720) * 360;
+  const [hx, hy] = polar(nowDeg, RING_R - RING_W/2 - 4);
+  const hand = document.getElementById('hourHand');
+  if (hand) { hand.setAttribute('x2', hx); hand.setAttribute('y2', hy); }
+  const hh = now.getHours(), mm = now.getMinutes();
+  document.getElementById('nowTime').textContent = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+  document.getElementById('nowAmpm').textContent = hh < 12 ? '上午' : '下午';
+  const nowTask = tasks.find(t => nowMin >= t.start && nowMin < t.end);
+  const newText = nowTask ? `正在进行：${nowTask.title}` : '';
+  const nt = document.getElementById('nowTask');
+  if (nt.textContent !== newText) nt.textContent = newText;
 }
 
 function renderList() {
@@ -674,7 +694,7 @@ document.querySelectorAll('#ampmSwitch button').forEach(b => {
   });
 });
 
-setInterval(() => renderRing(false), 1000);
+setInterval(updateClock, 1000);
 </script>
 </body>
 </html>
