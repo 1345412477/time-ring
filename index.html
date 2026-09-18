@@ -80,6 +80,15 @@
   }
   .ring-wrap circle.bg-ring { transition: opacity 0.3s; }
 
+  @keyframes ringFade {
+    0% { opacity: 0.55; transform: scale(0.99); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  .ring-wrap.animating circle.task-seg,
+  .ring-wrap.animating circle.bg-ring {
+    animation: ringFade 0.28s ease-out;
+  }
+
   .ring-center {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
@@ -324,6 +333,7 @@ let tasks = [];
 let editingId = null;
 let selectedCat = 'work';
 let viewMode = 'am';
+let animTimer = null;
 
 function loadCats() {
   try {
@@ -367,7 +377,7 @@ function load() {
 }
 function save() { localStorage.setItem(storageKey(), JSON.stringify(tasks)); }
 
-function renderRing() {
+function renderRing(animate = false) {
   const svg = document.getElementById('ringSvg');
   const wrap = document.getElementById('ringWrap');
   const [vs, ve] = viewRange();
@@ -411,6 +421,14 @@ function renderRing() {
   html += `<circle cx="${CENTER}" cy="${CENTER}" r="5" fill="#1f2937"/>`;
 
   svg.innerHTML = html;
+
+  if (animate) {
+    wrap.classList.remove('animating');
+    void wrap.offsetWidth;
+    wrap.classList.add('animating');
+    clearTimeout(animTimer);
+    animTimer = setTimeout(() => wrap.classList.remove('animating'), 320);
+  }
 
   const tooltip = document.getElementById('ringTooltip');
   svg.querySelectorAll('circle.task-seg').forEach(el => {
@@ -641,7 +659,7 @@ function toast(msg) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
 }
 
-function renderAll() { renderRing(); renderList(); renderStats(); }
+function renderAll(animate) { renderRing(animate); renderList(); renderStats(); }
 
 load();
 viewMode = new Date().getHours() < 12 ? 'am' : 'pm';
@@ -671,7 +689,7 @@ document.querySelectorAll('#ampmSwitch button').forEach(b => {
   b.addEventListener('click', () => {
     if (b.dataset.mode !== viewMode) {
       viewMode = b.dataset.mode;
-      renderAll();
+      renderAll(true);
     }
   });
 });
