@@ -338,26 +338,26 @@
       <div class="tp-row">
         <div class="tp-field" data-field="start">
           <div class="tp-col">
-            <button class="tp-btn up" data-step="h+1">&#9650;</button>
+            <button class="tp-btn up" data-step="h-increment">&#9650;</button>
             <input class="tp-val" data-part="h" value="09" maxlength="2">
-            <button class="tp-btn down" data-step="h-1">&#9660;</button>
+            <button class="tp-btn down" data-step="h-decrement">&#9660;</button>
           </div>
           <div class="tp-col">
-            <button class="tp-btn up" data-step="m+5">&#9650;</button>
+            <button class="tp-btn up" data-step="m-increment">&#9650;</button>
             <input class="tp-val" data-part="m" value="00" maxlength="2">
-            <button class="tp-btn down" data-step="m-5">&#9660;</button>
+            <button class="tp-btn down" data-step="m-decrement">&#9660;</button>
           </div>
         </div>
         <div class="tp-field" data-field="end">
           <div class="tp-col">
-            <button class="tp-btn up" data-step="h+1">&#9650;</button>
+            <button class="tp-btn up" data-step="h-increment">&#9650;</button>
             <input class="tp-val" data-part="h" value="10" maxlength="2">
-            <button class="tp-btn down" data-step="h-1">&#9660;</button>
+            <button class="tp-btn down" data-step="h-decrement">&#9660;</button>
           </div>
           <div class="tp-col">
-            <button class="tp-btn up" data-step="m+5">&#9650;</button>
+            <button class="tp-btn up" data-step="m-increment">&#9650;</button>
             <input class="tp-val" data-part="m" value="00" maxlength="2">
-            <button class="tp-btn down" data-step="m-5">&#9660;</button>
+            <button class="tp-btn down" data-step="m-decrement">&#9660;</button>
           </div>
         </div>
       </div>
@@ -702,7 +702,8 @@ function initTimePicker() {
   document.querySelectorAll('.tp-field').forEach(field => {
     field.querySelectorAll('.tp-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const [part, dir] = btn.dataset.step.split('-');
+        const [part, action] = btn.dataset.step.split('-');
+        const dir = action === 'increment' ? '+' : '-';
         const valInput = field.querySelector(`[data-part="${part}"]`);
         let v = parseInt(valInput.value, 10) || 0;
         if (part === 'h') {
