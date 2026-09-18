@@ -856,7 +856,7 @@ function openCatModal() {
   renderCatMgmt();
   document.getElementById('catModal').classList.add('show');
 }
-function renderColorSwatches(currentColor, onPick) {
+function renderColorSwatches(currentColor) {
   let html = PRESET_COLORS.map(c =>
     `<span class="cp-dot ${c===currentColor?'active':''}" data-color="${c}" style="background:${c}"></span>`
   ).join('');
@@ -905,12 +905,17 @@ function renderCatMgmt() {
   });
 }
 function deleteCat(id) {
-  const usedOnce = tasks.filter(t => !t.recurring && t.cat === id).length;
-  const usedRecur = recurring.filter(r => r.cat === id).length;
-  const used = usedOnce + usedRecur;
-  if (used > 0) { toast(`该类别下还有 ${used} 个事项，无法删除`); return; }
+  const usedOnce = tasks.filter(t => !t.recurring && t.cat === id);
+  const usedRecur = recurring.filter(r => r.cat === id);
+  const used = usedOnce.length + usedRecur.length;
+  usedOnce.forEach(t => { t.cat = 'free'; });
+  usedRecur.forEach(r => { r.cat = 'free'; });
+  if (usedOnce.length) save();
+  if (usedRecur.length) saveRecurring();
   cats = cats.filter(c => c.id !== id);
-  saveCats(); renderAll(); renderCatMgmt(); toast('已删除类别');
+  if (selectedCat === id) selectedCat = 'free';
+  saveCats(); load(); renderAll(); renderCatMgmt();
+  toast(used > 0 ? `已删除，${used} 个事项转为空闲` : '已删除类别');
 }
 function addCat() {
   const id = 'c' + Date.now();
