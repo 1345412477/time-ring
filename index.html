@@ -14,19 +14,10 @@
     --border: #e5e7eb;
     --accent: #2d6a4f;
     --shadow: 0 2px 12px rgba(0,0,0,0.06);
-    --shadow-lg: 0 8px 30px rgba(0,0,0,0.1);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
     --radius: 16px;
-
-    --c-free: #b7e4c7;
-    --c-sleep: #2d6a4f;
-    --c-work: #90e0ef;
-    --c-study: #64dfdf;
-    --c-exercise: #ffe66d;
-    --c-fun: #ffafcc;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
     background: var(--bg);
@@ -34,141 +25,101 @@
     min-height: 100vh;
     padding: 24px;
   }
-
   .app { max-width: 1200px; margin: 0 auto; }
 
-  /* ===== 顶部栏 ===== */
-  .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-  }
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; animation: fadeDown 0.5s ease; }
   .topbar h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
   .topbar .date { color: var(--text-light); font-size: 14px; margin-left: 12px; font-weight: 400; }
-  .topbar-right { display: flex; gap: 10px; }
+  .topbar-right { display: flex; gap: 10px; align-items: center; }
   .btn {
-    padding: 9px 16px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--card);
-    color: var(--text);
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.15s;
-    font-family: inherit;
+    padding: 9px 16px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--card); color: var(--text); font-size: 14px; cursor: pointer;
+    transition: all 0.15s; font-family: inherit;
   }
-  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
   .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
   .btn-primary:hover { background: #1f5240; color: #fff; }
+  .btn-ghost { border: none; background: transparent; color: var(--text-light); padding: 8px 12px; }
+  .btn-ghost:hover { color: var(--text); background: #f1f5f9; }
 
-  /* ===== 主布局 ===== */
   .main { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
 
-  /* ===== 圆环卡片 ===== */
   .ring-card {
-    background: var(--card);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 24px 32px 32px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 24px 32px 32px; display: flex; flex-direction: column; align-items: center;
+    position: relative; animation: fadeUp 0.5s ease;
   }
-  .card-header {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-  }
+  .card-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .card-header .title { font-size: 14px; color: var(--text-light); }
 
-  /* 上下午切换 */
-  .ampm-switch {
-    display: inline-flex;
-    background: #f1f5f9;
-    border-radius: 10px;
-    padding: 3px;
-  }
+  .ampm-switch { display: inline-flex; background: #f1f5f9; border-radius: 10px; padding: 3px; position: relative; }
   .ampm-switch button {
-    padding: 5px 14px;
-    border: none;
-    background: transparent;
-    border-radius: 8px;
-    font-size: 13px;
-    cursor: pointer;
-    color: var(--text-light);
-    font-family: inherit;
-    transition: all 0.15s;
+    padding: 5px 16px; border: none; background: transparent; border-radius: 8px;
+    font-size: 13px; cursor: pointer; color: var(--text-light); font-family: inherit;
+    transition: color 0.2s; position: relative; z-index: 1;
   }
-  .ampm-switch button.active {
-    background: #fff;
-    color: var(--text);
-    font-weight: 600;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  .ampm-switch button.active { color: var(--text); font-weight: 600; }
+  .ampm-indicator {
+    position: absolute; top: 3px; bottom: 3px; width: 50%;
+    background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 0;
   }
 
-  .ring-wrap {
-    position: relative;
-    width: 100%;
-    max-width: 460px;
-    aspect-ratio: 1;
+  .ring-wrap { position: relative; width: 100%; max-width: 460px; aspect-ratio: 1; }
+  .ring-wrap svg { width: 100%; height: 100%; overflow: visible; }
+
+  .ring-wrap circle.task-seg {
+    transition: stroke-width 0.2s ease, filter 0.2s ease;
+    transform-origin: center;
+    transform-box: fill-box;
   }
-  .ring-wrap svg { width: 100%; height: 100%; }
+  .ring-wrap circle.task-seg:hover {
+    stroke-width: 36;
+    filter: drop-shadow(0 3px 8px rgba(0,0,0,0.25));
+  }
+  .ring-wrap circle.bg-ring { transition: opacity 0.3s; }
+
+  @keyframes ringFade {
+    0% { opacity: 0.2; transform: scale(0.985); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  .ring-wrap.animating circle.task-seg,
+  .ring-wrap.animating circle.bg-ring {
+    animation: ringFade 0.45s ease;
+  }
 
   .ring-center {
-    position: absolute;
-    top: 50%; left: 50%;
+    position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    text-align: center;
-    pointer-events: none;
+    text-align: center; pointer-events: none;
   }
-  .ring-center .time {
-    font-size: 42px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -1px;
-    line-height: 1;
-  }
-  .ring-center .ampm {
-    font-size: 13px;
-    color: var(--text-light);
-    margin-top: 4px;
-  }
-  .ring-center .now-task {
-    font-size: 12px;
-    color: var(--accent);
-    margin-top: 6px;
-    max-width: 180px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+  .ring-center .time { font-size: 42px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -1px; line-height: 1; }
+  .ring-center .ampm { font-size: 13px; color: var(--text-light); margin-top: 4px; }
+  .ring-center .now-task { font-size: 12px; color: var(--accent); margin-top: 6px; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  /* ===== 统计条 ===== */
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 8px;
-    margin-top: 24px;
-    width: 100%;
+  .ring-tooltip {
+    position: absolute; pointer-events: none; background: rgba(31,41,55,0.95); color: #fff;
+    padding: 8px 12px; border-radius: 8px; font-size: 12px; line-height: 1.5;
+    opacity: 0; transition: opacity 0.15s; z-index: 10; white-space: nowrap;
+    transform: translate(-50%, calc(-100% - 8px));
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
-  .stat { text-align: center; padding: 10px 6px; border-radius: 10px; background: #f8fafc; }
+  .ring-tooltip.show { opacity: 1; }
+  .ring-tooltip .tt-title { font-weight: 600; }
+  .ring-tooltip .tt-meta { opacity: 0.8; font-size: 11px; }
+
+  .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 24px; width: 100%; }
+  .stat { text-align: center; padding: 10px 6px; border-radius: 10px; background: #f8fafc; transition: transform 0.2s; }
+  .stat:hover { transform: translateY(-2px); }
   .stat .dot { width: 10px; height: 10px; border-radius: 50%; margin: 0 auto 6px; }
   .stat .name { font-size: 12px; color: var(--text-light); }
   .stat .val { font-size: 14px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
 
-  /* ===== 侧栏 ===== */
   .side {
-    background: var(--card);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    max-height: calc(100vh - 120px);
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 24px; display: flex; flex-direction: column; max-height: calc(100vh - 120px);
+    animation: fadeUp 0.5s ease 0.1s backwards;
   }
   .side-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
   .side-header h2 { font-size: 16px; font-weight: 600; }
@@ -176,48 +127,93 @@
 
   .task-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
   .task-item {
-    display: flex;
-    gap: 12px;
-    padding: 12px;
-    border-radius: 12px;
-    background: #f8fafc;
-    cursor: pointer;
-    transition: background 0.15s;
-    border-left: 3px solid transparent;
+    display: flex; gap: 12px; padding: 12px; border-radius: 12px; background: #f8fafc;
+    cursor: pointer; transition: background 0.15s, transform 0.2s; border-left: 3px solid transparent;
+    animation: slideIn 0.3s ease;
   }
-  .task-item:hover { background: #f1f5f9; }
+  .task-item:hover { background: #f1f5f9; transform: translateX(2px); }
   .task-item .swatch { width: 4px; border-radius: 2px; align-self: stretch; min-height: 40px; }
   .task-item .body { flex: 1; min-width: 0; }
   .task-item .t { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .task-item .meta { font-size: 12px; color: var(--text-light); margin-top: 3px; font-variant-numeric: tabular-nums; }
   .task-item .note { font-size: 12px; color: var(--text-light); margin-top: 4px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .task-item .del { align-self: center; width: 24px; height: 24px; border-radius: 6px; border: none; background: transparent; color: #cbd5e1; cursor: pointer; font-size: 16px; line-height: 1; flex-shrink: 0; }
+  .task-item .del {
+    align-self: center; width: 24px; height: 24px; border-radius: 6px; border: none;
+    background: transparent; color: #cbd5e1; cursor: pointer; font-size: 16px; line-height: 1;
+    flex-shrink: 0; transition: all 0.15s;
+  }
   .task-item .del:hover { background: #fee2e2; color: #ef4444; }
   .task-item.now { background: #ecfdf5; border-left-color: var(--accent); }
   .task-item.now .t::after { content: "·进行中"; font-size: 11px; color: var(--accent); margin-left: 6px; font-weight: 500; }
-
   .empty { text-align: center; padding: 40px 20px; color: var(--text-light); font-size: 13px; }
 
-  /* ===== 弹窗 ===== */
-  .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 100; }
-  .modal-mask.show { display: flex; }
-  .modal { background: var(--card); border-radius: 16px; padding: 28px; width: 90%; max-width: 420px; box-shadow: var(--shadow-lg); }
+  .modal-mask {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center; z-index: 100;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    backdrop-filter: blur(2px);
+  }
+  .modal-mask.show { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: var(--card); border-radius: 16px; padding: 28px; width: 90%; max-width: 440px;
+    box-shadow: var(--shadow-lg); transform: scale(0.95) translateY(10px); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-mask.show .modal { transform: scale(1) translateY(0); }
   .modal h3 { font-size: 17px; margin-bottom: 20px; }
   .form-row { margin-bottom: 14px; }
   .form-row label { display: block; font-size: 12px; color: var(--text-light); margin-bottom: 6px; }
-  .form-row input, .form-row textarea, .form-row select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #fff; }
-  .form-row input:focus, .form-row textarea:focus, .form-row select:focus { outline: none; border-color: var(--accent); }
+  .form-row input, .form-row textarea {
+    width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 14px; font-family: inherit; background: #fff; transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .form-row input:focus, .form-row textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,106,79,0.1); }
   .form-row textarea { resize: vertical; min-height: 60px; }
   .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
   .cat-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .cat-opt { padding: 8px 6px; border-radius: 8px; border: 2px solid transparent; background: #f8fafc; cursor: pointer; text-align: center; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .cat-opt {
+    padding: 8px 6px; border-radius: 8px; border: 2px solid transparent; background: #f8fafc;
+    cursor: pointer; text-align: center; font-size: 12px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all 0.15s;
+  }
+  .cat-opt:hover { background: #f1f5f9; }
   .cat-opt .dot { width: 10px; height: 10px; border-radius: 50%; }
   .cat-opt.active { border-color: var(--text); background: #fff; }
+
+  .cat-mgmt-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .cat-mgmt-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+    border-radius: 10px; background: #f8fafc;
+  }
+  .cat-mgmt-item input[type="color"] {
+    width: 36px; height: 36px; border: none; border-radius: 8px; cursor: pointer;
+    background: none; padding: 0;
+  }
+  .cat-mgmt-item input[type="text"] {
+    flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 13px; font-family: inherit;
+  }
+  .cat-mgmt-item .del-cat {
+    width: 26px; height: 26px; border-radius: 6px; border: none; background: transparent;
+    color: #cbd5e1; cursor: pointer; font-size: 14px;
+  }
+  .cat-mgmt-item .del-cat:hover { background: #fee2e2; color: #ef4444; }
+  .cat-mgmt-item .tag-system { font-size: 10px; color: var(--text-light); background: #e2e8f0; padding: 2px 6px; border-radius: 4px; }
+
   .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
 
-  /* ===== Toast ===== */
-  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1f2937; color: #fff; padding: 10px 20px; border-radius: 10px; font-size: 13px; opacity: 0; pointer-events: none; transition: all 0.25s; z-index: 200; }
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #1f2937; color: #fff; padding: 10px 20px; border-radius: 10px; font-size: 13px;
+    opacity: 0; pointer-events: none; transition: all 0.25s; z-index: 200;
+  }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
 
   @media (max-width: 900px) {
     body { padding: 14px; }
@@ -233,6 +229,9 @@
   <div class="topbar">
     <h1>时间圆环 <span class="date" id="todayLabel"></span></h1>
     <div class="topbar-right">
+      <button class="btn btn-ghost" id="catManageBtn" title="管理类别">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>类别
+      </button>
       <button class="btn" id="exportBtn">导出数据</button>
       <button class="btn btn-primary" id="addBtn">+ 添加事项</button>
     </div>
@@ -243,12 +242,14 @@
       <div class="card-header">
         <span class="title">今日时间分布</span>
         <div class="ampm-switch" id="ampmSwitch">
-          <button data-mode="am">上午</button>
+          <div class="ampm-indicator" id="ampmIndicator"></div>
+          <button data-mode="am" class="active">上午</button>
           <button data-mode="pm">下午</button>
         </div>
       </div>
-      <div class="ring-wrap">
+      <div class="ring-wrap" id="ringWrap">
         <svg id="ringSvg" viewBox="0 0 400 400"></svg>
+        <div class="ring-tooltip" id="ringTooltip"></div>
         <div class="ring-center">
           <div class="time" id="nowTime">--:--</div>
           <div class="ampm" id="nowAmpm">上午</div>
@@ -297,29 +298,52 @@
   </div>
 </div>
 
+<div class="modal-mask" id="catModal">
+  <div class="modal">
+    <h3>管理类别</h3>
+    <p style="font-size:12px;color:var(--text-light);margin-bottom:14px;">自定义类别名称和颜色；"空闲"为系统类，不可删除。</p>
+    <div class="cat-mgmt-list" id="catMgmtList"></div>
+    <div class="modal-actions" style="margin-top:0;">
+      <button class="btn" id="addCatBtn">+ 新增类别</button>
+      <button class="btn btn-primary" id="catCloseBtn">完成</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== 配置 =====
-const CATS = {
-  free:     { name: '空闲', color: '#b7e4c7' },
-  sleep:    { name: '睡眠', color: '#2d6a4f' },
-  work:     { name: '工作', color: '#90e0ef' },
-  study:    { name: '学习', color: '#64dfdf' },
-  exercise: { name: '运动', color: '#ffe66d' },
-  fun:      { name: '娱乐', color: '#ffafcc' },
-};
-
 const RING_R = 150;
 const RING_W = 28;
 const CENTER = 200;
 const VIEW_MIN = 720;
 const CIRC = 2 * Math.PI * RING_R;
 
+const DEFAULT_CATS = [
+  { id: 'free',     name: '空闲', color: '#b7e4c7', system: true },
+  { id: 'sleep',    name: '睡眠', color: '#2d6a4f' },
+  { id: 'work',     name: '工作', color: '#90e0ef' },
+  { id: 'study',    name: '学习', color: '#64dfdf' },
+  { id: 'exercise', name: '运动', color: '#ffe66d' },
+  { id: 'fun',      name: '娱乐', color: '#ffafcc' },
+];
+
+let cats = loadCats();
 let tasks = [];
 let editingId = null;
 let selectedCat = 'work';
 let viewMode = 'am';
+
+function loadCats() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('timering_cats'));
+    if (saved && Array.isArray(saved) && saved.length) return saved;
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_CATS));
+}
+function saveCats() { localStorage.setItem('timering_cats', JSON.stringify(cats)); }
+function catById(id) { return cats.find(c => c.id === id) || cats[0]; }
+function freeColor() { return catById('free').color; }
 
 function todayStr() {
   const d = new Date();
@@ -337,12 +361,13 @@ function fmtDur(min) {
   if (h) return `${h}小时`;
   return `${m}分`;
 }
-function viewRange() {
-  return viewMode === 'am' ? [0, 720] : [720, 1440];
-}
+function viewRange() { return viewMode === 'am' ? [0, 720] : [720, 1440]; }
 function polar(angleDeg, r) {
   const rad = (angleDeg - 90) * Math.PI / 180;
   return [CENTER + r * Math.cos(rad), CENTER + r * Math.sin(rad)];
+}
+function escapeHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 function load() {
@@ -351,12 +376,13 @@ function load() {
 }
 function save() { localStorage.setItem(storageKey(), JSON.stringify(tasks)); }
 
-function renderRing() {
+function renderRing(animate = false) {
   const svg = document.getElementById('ringSvg');
+  const wrap = document.getElementById('ringWrap');
   const [vs, ve] = viewRange();
   let html = '';
 
-  html += `<circle cx="${CENTER}" cy="${CENTER}" r="${RING_R}" fill="none" stroke="${CATS.free.color}" stroke-width="${RING_W}" opacity="0.55"/>`;
+  html += `<circle class="bg-ring" cx="${CENTER}" cy="${CENTER}" r="${RING_R}" fill="none" stroke="${freeColor()}" stroke-width="${RING_W}" opacity="0.55"/>`;
 
   for (let h = 0; h < 12; h++) {
     const deg = h * 30;
@@ -376,9 +402,9 @@ function renderRing() {
     const dur = visEnd - visStart;
     const len = (dur / VIEW_MIN) * CIRC;
     const offset = -((visStart - vs) / VIEW_MIN) * CIRC;
-    const color = CATS[t.cat].color;
-    html += `<circle cx="${CENTER}" cy="${CENTER}" r="${RING_R}" fill="none"
-      stroke="${color}" stroke-width="${RING_W}"
+    const cat = catById(t.cat);
+    html += `<circle class="task-seg" cx="${CENTER}" cy="${CENTER}" r="${RING_R}" fill="none"
+      stroke="${cat.color}" stroke-width="${RING_W}"
       stroke-dasharray="${len} ${CIRC - len}"
       stroke-dashoffset="${offset}"
       data-id="${t.id}" style="cursor:pointer"/>`;
@@ -395,11 +421,29 @@ function renderRing() {
 
   svg.innerHTML = html;
 
-  svg.querySelectorAll('circle[data-id]').forEach(el => {
+  if (animate) {
+    wrap.classList.remove('animating');
+    void wrap.offsetWidth;
+    wrap.classList.add('animating');
+  }
+
+  const tooltip = document.getElementById('ringTooltip');
+  svg.querySelectorAll('circle.task-seg').forEach(el => {
     el.addEventListener('click', () => {
       const t = tasks.find(x => x.id === el.dataset.id);
       if (t) openModal(t);
     });
+    el.addEventListener('mousemove', (e) => {
+      const t = tasks.find(x => x.id === el.dataset.id);
+      if (!t) return;
+      const rect = wrap.getBoundingClientRect();
+      const cat = catById(t.cat);
+      tooltip.innerHTML = `<div class="tt-title">${escapeHtml(t.title)}</div><div class="tt-meta">${minToTime(t.start)} - ${minToTime(t.end)} · ${cat.name}</div>`;
+      tooltip.style.left = (e.clientX - rect.left) + 'px';
+      tooltip.style.top = (e.clientY - rect.top) + 'px';
+      tooltip.classList.add('show');
+    });
+    el.addEventListener('mouseleave', () => tooltip.classList.remove('show'));
   });
 
   const hh = now.getHours(), mm = now.getMinutes();
@@ -407,9 +451,9 @@ function renderRing() {
   document.getElementById('nowAmpm').textContent = hh < 12 ? '上午' : '下午';
   document.getElementById('nowTask').textContent = nowTask ? `正在进行：${nowTask.title}` : '';
 
-  document.querySelectorAll('#ampmSwitch button').forEach(b => {
-    b.classList.toggle('active', b.dataset.mode === viewMode);
-  });
+  const ind = document.getElementById('ampmIndicator');
+  document.querySelectorAll('#ampmSwitch button').forEach(b => b.classList.toggle('active', b.dataset.mode === viewMode));
+  ind.style.left = viewMode === 'pm' ? 'calc(50% - 3px)' : '3px';
 }
 
 function renderList() {
@@ -422,14 +466,15 @@ function renderList() {
     list.innerHTML = `<div class="empty">还没有事项<br>点击右上角"添加事项"开始规划今天</div>`;
     return;
   }
-  list.innerHTML = sorted.map(t => {
+  list.innerHTML = sorted.map((t, i) => {
     const isNow = nowMin >= t.start && nowMin < t.end;
+    const cat = catById(t.cat);
     return `
-    <div class="task-item ${isNow?'now':''}" data-id="${t.id}">
-      <div class="swatch" style="background:${CATS[t.cat].color}"></div>
+    <div class="task-item ${isNow?'now':''}" data-id="${t.id}" style="animation-delay:${i*0.04}s">
+      <div class="swatch" style="background:${cat.color}"></div>
       <div class="body">
         <div class="t">${escapeHtml(t.title)}</div>
-        <div class="meta">${minToTime(t.start)} - ${minToTime(t.end)} · ${CATS[t.cat].name}</div>
+        <div class="meta">${minToTime(t.start)} - ${minToTime(t.end)} · ${cat.name}</div>
         ${t.note ? `<div class="note">${escapeHtml(t.note)}</div>` : ''}
       </div>
       <button class="del" data-del="${t.id}" title="删除">×</button>
@@ -449,23 +494,20 @@ function renderList() {
 }
 
 function renderStats() {
-  const used = { free: 0, sleep: 0, work: 0, study: 0, exercise: 0, fun: 0 };
+  const used = {};
+  cats.forEach(c => used[c.id] = 0);
   tasks.forEach(t => { used[t.cat] = (used[t.cat]||0) + (t.end - t.start); });
   let busy = 0;
-  Object.keys(used).forEach(k => { if (k !== 'free') busy += used[k]; });
+  cats.forEach(c => { if (c.id !== 'free') busy += used[c.id] || 0; });
   used.free = Math.max(0, 1440 - busy);
 
-  document.getElementById('statsBar').innerHTML = Object.keys(CATS).map(k => `
+  document.getElementById('statsBar').innerHTML = cats.map(c => `
     <div class="stat">
-      <div class="dot" style="background:${CATS[k].color}"></div>
-      <div class="name">${CATS[k].name}</div>
-      <div class="val">${fmtDur(used[k]||0)}</div>
+      <div class="dot" style="background:${c.color}"></div>
+      <div class="name">${c.name}</div>
+      <div class="val">${fmtDur(used[c.id]||0)}</div>
     </div>
   `).join('');
-}
-
-function escapeHtml(s) {
-  return String(s||'').replace(/[&<>"]'/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 function openModal(task) {
@@ -485,9 +527,9 @@ function closeModal() {
 }
 function renderCatPicker() {
   const p = document.getElementById('catPicker');
-  p.innerHTML = Object.keys(CATS).filter(k => k !== 'free').map(k => `
-    <div class="cat-opt ${selectedCat===k?'active':''}" data-cat="${k}">
-      <span class="dot" style="background:${CATS[k].color}"></span>${CATS[k].name}
+  p.innerHTML = cats.filter(c => c.id !== 'free').map(c => `
+    <div class="cat-opt ${selectedCat===c.id?'active':''}" data-cat="${c.id}">
+      <span class="dot" style="background:${c.color}"></span>${c.name}
     </div>
   `).join('');
   p.querySelectorAll('.cat-opt').forEach(el => {
@@ -509,17 +551,61 @@ function saveTask() {
   } else {
     tasks.push({ id: 't' + Date.now(), title, start, end, cat: selectedCat, note });
   }
-  save();
-  closeModal();
-  renderAll();
+  save(); closeModal(); renderAll();
   toast(editingId ? '已更新' : '已添加');
 }
 
 function deleteTask(id) {
   tasks = tasks.filter(t => t.id !== id);
-  save();
-  renderAll();
-  toast('已删除');
+  save(); renderAll(); toast('已删除');
+}
+
+function openCatModal() {
+  renderCatMgmt();
+  document.getElementById('catModal').classList.add('show');
+}
+function renderCatMgmt() {
+  const list = document.getElementById('catMgmtList');
+  list.innerHTML = cats.map(c => `
+    <div class="cat-mgmt-item" data-id="${c.id}">
+      <input type="color" value="${c.color}" data-field="color" title="颜色">
+      <input type="text" value="${escapeHtml(c.name)}" data-field="name" maxlength="10">
+      ${c.system ? '<span class="tag-system">系统</span>' : `<button class="del-cat" data-del="${c.id}" title="删除">×</button>`}
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.cat-mgmt-item').forEach(row => {
+    const id = row.dataset.id;
+    const colorInput = row.querySelector('input[data-field="color"]');
+    const nameInput = row.querySelector('input[data-field="name"]');
+    const delBtn = row.querySelector('.del-cat');
+
+    colorInput.addEventListener('input', () => {
+      const cat = cats.find(c => c.id === id);
+      cat.color = colorInput.value;
+      saveCats(); renderAll();
+    });
+    nameInput.addEventListener('change', () => {
+      const cat = cats.find(c => c.id === id);
+      const v = nameInput.value.trim();
+      if (v) { cat.name = v; saveCats(); renderAll(); renderCatMgmt(); }
+    });
+    if (delBtn) delBtn.addEventListener('click', () => deleteCat(id));
+  });
+}
+function deleteCat(id) {
+  const used = tasks.filter(t => t.cat === id).length;
+  if (used > 0) { toast(`该类别下还有 ${used} 个事项，无法删除`); return; }
+  cats = cats.filter(c => c.id !== id);
+  saveCats(); renderAll(); renderCatMgmt(); toast('已删除类别');
+}
+function addCat() {
+  const id = 'c' + Date.now();
+  cats.push({ id, name: '新类别', color: '#cbd5e1' });
+  saveCats(); renderAll(); renderCatMgmt();
+  const rows = document.querySelectorAll('.cat-mgmt-item');
+  const last = rows[rows.length - 1];
+  if (last) last.querySelector('input[data-field="name"]').focus();
 }
 
 function exportData() {
@@ -528,8 +614,8 @@ function exportData() {
     exportedAt: new Date().toISOString(),
     tasks: tasks.slice().sort((a,b)=>a.start-b.start).map(t => ({
       time: `${minToTime(t.start)}-${minToTime(t.end)}`,
-      category: CATS[t.cat].name,
-      color: CATS[t.cat].color,
+      category: catById(t.cat).name,
+      color: catById(t.cat).color,
       title: t.title,
       note: t.note,
       duration_min: t.end - t.start
@@ -553,7 +639,7 @@ function toast(msg) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
 }
 
-function renderAll() { renderRing(); renderList(); renderStats(); }
+function renderAll(animate) { renderRing(animate); renderList(); renderStats(); }
 
 load();
 viewMode = new Date().getHours() < 12 ? 'am' : 'pm';
@@ -574,12 +660,21 @@ document.getElementById('addBtn').addEventListener('click', () => openModal(null
 document.getElementById('cancelBtn').addEventListener('click', closeModal);
 document.getElementById('saveBtn').addEventListener('click', saveTask);
 document.getElementById('exportBtn').addEventListener('click', exportData);
+document.getElementById('catManageBtn').addEventListener('click', openCatModal);
+document.getElementById('catCloseBtn').addEventListener('click', () => document.getElementById('catModal').classList.remove('show'));
+document.getElementById('addCatBtn').addEventListener('click', addCat);
 document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
+document.getElementById('catModal').addEventListener('click', (e) => { if (e.target.id === 'catModal') e.currentTarget.classList.remove('show'); });
 document.querySelectorAll('#ampmSwitch button').forEach(b => {
-  b.addEventListener('click', () => { viewMode = b.dataset.mode; renderAll(); });
+  b.addEventListener('click', () => {
+    if (b.dataset.mode !== viewMode) {
+      viewMode = b.dataset.mode;
+      renderAll(true);
+    }
+  });
 });
 
-setInterval(renderRing, 1000);
+setInterval(() => renderRing(false), 1000);
 </script>
 </body>
 </html>
