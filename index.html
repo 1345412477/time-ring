@@ -495,7 +495,7 @@ function renderRing() {
     segs.forEach(([s, e]) => {
       const dur = e - s;
       const len = (dur / VIEW_MIN) * CIRC;
-      const offset = -((s - vs) / VIEW_MIN) * CIRC;
+      const offset = CIRC / 4 - ((s - vs) / VIEW_MIN) * CIRC;
       html += `<circle class="task-seg" cx="${CENTER}" cy="${CENTER}" r="${RING_R}" fill="none"
         stroke="${t.color}" stroke-width="${RING_W}"
         stroke-dasharray="${len} ${CIRC - len}"
