@@ -599,18 +599,18 @@ function renderList() {
 }
 
 function renderStats() {
-  const colorMap = {};
+  const titleMap = {};
   tasks.forEach(t => {
-    if (!colorMap[t.color]) colorMap[t.color] = 0;
-    colorMap[t.color] += taskDuration(t);
+    if (!titleMap[t.title]) titleMap[t.title] = { color: t.color, dur: 0 };
+    titleMap[t.title].dur += taskDuration(t);
   });
   let busy = 0;
-  Object.values(colorMap).forEach(v => busy += v);
+  Object.values(titleMap).forEach(v => busy += v.dur);
   const freeMin = Math.max(0, 1440 - busy);
 
   let html = `<div class="stat"><div class="dot" style="background:${FREE_COLOR}"></div><div class="name">空闲</div><div class="val">${fmtDur(freeMin)}</div></div>`;
-  Object.keys(colorMap).forEach(color => {
-    html += `<div class="stat"><div class="dot" style="background:${color}"></div><div class="name">&nbsp;</div><div class="val">${fmtDur(colorMap[color])}</div></div>`;
+  Object.keys(titleMap).forEach(title => {
+    html += `<div class="stat"><div class="dot" style="background:${titleMap[title].color}"></div><div class="name">${escapeHtml(title)}</div><div class="val">${fmtDur(titleMap[title].dur)}</div></div>`;
   });
   document.getElementById('statsBar').innerHTML = html;
 }
